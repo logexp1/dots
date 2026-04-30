@@ -9,6 +9,12 @@ return {
   },
 
   {
+    'folke/ts-comments.nvim',
+    event = 'VeryLazy',
+    opts = {},
+  },
+
+  {
     'nvim-mini/mini.ai',
     event = 'VeryLazy',
     opts = function()

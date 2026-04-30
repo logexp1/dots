@@ -5,6 +5,7 @@ return {
     ---@diagnostic disable-next-line: missing-fields
     require('tokyonight').setup {
       transparent = true,
+      style = 'moon',
       styles = {
         comments = { italic = false },
         sidebars = 'transparent',
