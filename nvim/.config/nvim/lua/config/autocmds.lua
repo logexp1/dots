@@ -134,4 +134,63 @@ vim.api.nvim_create_autocmd('BufEnter', {
   end,
 })
 
+-- LSP: keymaps, inlay hints, and document highlighting on attach
+vim.api.nvim_create_autocmd('LspAttach', {
+  group = augroup 'lsp_attach',
+  callback = function(event)
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+
+    -- Pyright: notify venv path after attach
+    if client and client.name == 'pyright' then
+      local root = client.config.root_dir or vim.fn.getcwd()
+      for _, venv in ipairs { '/.venv/bin/python', '/venv/bin/python' } do
+        local python = root .. venv
+        if vim.fn.executable(python) == 1 then
+          client.config.settings = vim.tbl_deep_extend('force', client.config.settings or {}, {
+            python = { pythonPath = python },
+          })
+          client.notify('workspace/didChangeConfiguration', { settings = client.config.settings })
+          break
+        end
+      end
+    end
+
+    local map = function(keys, func, desc, mode)
+      vim.keymap.set(mode or 'n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+    end
+
+    map('grr', function() Snacks.picker.lsp_references() end, 'Goto References')
+    map('gri', function() Snacks.picker.lsp_implementations() end, 'Goto Implementation')
+    map('grd', function() Snacks.picker.lsp_definitions() end, 'Goto Definition')
+    map('grD', vim.lsp.buf.declaration, 'Goto Declaration')
+    map('gO',  function() Snacks.picker.lsp_symbols() end, 'Document Symbols')
+    map('gW',  function() Snacks.picker.lsp_workspace_symbols() end, 'Workspace Symbols')
+    map('grt', function() Snacks.picker.lsp_type_definitions() end, 'Goto Type Definition')
+
+    if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
+      map('<leader>th', function()
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
+      end, 'Toggle Inlay Hints')
+    end
+
+    if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
+      local hi = vim.api.nvim_create_augroup('lsp_highlight', { clear = false })
+      vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+        buffer = event.buf, group = hi, callback = vim.lsp.buf.document_highlight,
+      })
+      vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+        buffer = event.buf, group = hi, callback = vim.lsp.buf.clear_references,
+      })
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd('LspDetach', {
+  group = augroup 'lsp_detach',
+  callback = function(event)
+    vim.lsp.buf.clear_references()
+    vim.api.nvim_clear_autocmds { group = 'lsp_highlight', buffer = event.buf }
+  end,
+})
+
 -- vim: ts=2 sts=2 sw=2 et
