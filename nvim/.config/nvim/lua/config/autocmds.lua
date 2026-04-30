@@ -134,14 +134,65 @@ vim.api.nvim_create_autocmd('BufEnter', {
   end,
 })
 
--- LSP: keymaps, inlay hints, and document highlighting on attach
+-- LSP keymaps, document highlighting, and pyright venv on attach
 vim.api.nvim_create_autocmd('LspAttach', {
   group = augroup 'lsp_attach',
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if not client then
+      return
+    end
+
+    local map = function(lhs, rhs, desc, mode)
+      vim.keymap.set(mode or 'n', lhs, rhs, { buffer = event.buf, desc = 'LSP: ' .. desc })
+    end
+
+    -- Navigation (LazyVim-style keys)
+    if client:supports_method 'textDocument/definition' then
+      map('gd', function()
+        Snacks.picker.lsp_definitions()
+      end, 'Goto Definition')
+    end
+    map('gr', function()
+      Snacks.picker.lsp_references()
+    end, 'References')
+    map('gI', function()
+      Snacks.picker.lsp_implementations()
+    end, 'Goto Implementation')
+    map('gy', function()
+      Snacks.picker.lsp_type_definitions()
+    end, 'Goto Type Definition')
+    map('gD', vim.lsp.buf.declaration, 'Goto Declaration')
+
+    -- Symbols
+    if client:supports_method 'textDocument/documentSymbol' then
+      map('<leader>ss', function()
+        Snacks.picker.lsp_symbols()
+      end, 'LSP Symbols')
+    end
+    if client:supports_method 'workspace/symbol' then
+      map('<leader>sS', function()
+        Snacks.picker.lsp_workspace_symbols()
+      end, 'LSP Workspace Symbols')
+    end
+
+    -- Call hierarchy
+    map('gai', function()
+      Snacks.picker.lsp_incoming_calls()
+    end, 'Calls Incoming')
+    map('gao', function()
+      Snacks.picker.lsp_outgoing_calls()
+    end, 'Calls Outgoing')
+
+    -- Inlay hints toggle
+    if client:supports_method 'textDocument/inlayHint' then
+      map('<leader>th', function()
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
+      end, 'Toggle Inlay Hints')
+    end
 
     -- Pyright: notify venv path after attach
-    if client and client.name == 'pyright' then
+    if client.name == 'pyright' then
       local root = client.config.root_dir or vim.fn.getcwd()
       for _, venv in ipairs { '/.venv/bin/python', '/venv/bin/python' } do
         local python = root .. venv
@@ -155,31 +206,18 @@ vim.api.nvim_create_autocmd('LspAttach', {
       end
     end
 
-    local map = function(keys, func, desc, mode)
-      vim.keymap.set(mode or 'n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
-    end
-
-    map('grr', function() Snacks.picker.lsp_references() end, 'Goto References')
-    map('gri', function() Snacks.picker.lsp_implementations() end, 'Goto Implementation')
-    map('grd', function() Snacks.picker.lsp_definitions() end, 'Goto Definition')
-    map('grD', vim.lsp.buf.declaration, 'Goto Declaration')
-    map('gO',  function() Snacks.picker.lsp_symbols() end, 'Document Symbols')
-    map('gW',  function() Snacks.picker.lsp_workspace_symbols() end, 'Workspace Symbols')
-    map('grt', function() Snacks.picker.lsp_type_definitions() end, 'Goto Type Definition')
-
-    if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
-      map('<leader>th', function()
-        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-      end, 'Toggle Inlay Hints')
-    end
-
-    if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
+    -- Document highlighting on cursor hold
+    if client:supports_method 'textDocument/documentHighlight' then
       local hi = vim.api.nvim_create_augroup('lsp_highlight', { clear = false })
       vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-        buffer = event.buf, group = hi, callback = vim.lsp.buf.document_highlight,
+        buffer = event.buf,
+        group = hi,
+        callback = vim.lsp.buf.document_highlight,
       })
       vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-        buffer = event.buf, group = hi, callback = vim.lsp.buf.clear_references,
+        buffer = event.buf,
+        group = hi,
+        callback = vim.lsp.buf.clear_references,
       })
     end
   end,
