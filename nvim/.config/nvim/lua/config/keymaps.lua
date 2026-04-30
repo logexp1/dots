@@ -33,14 +33,13 @@ map('n', 'a', 'A', { desc = 'Append at end of line' })
 
 map('n', ';', ':', { desc = 'Command mode', noremap = true })
 map('v', ';', ':', { desc = 'Command mode', noremap = true })
-
 map('n', 'U', '<C-r>', { desc = 'Redo', noremap = true })
 
-vim.keymap.set({ 'n', 'i', 'v' }, '<C-f>', function()
+map({ 'n', 'i', 'v' }, '<C-f>', function()
   Snacks.picker.lines { pattern = vim.fn.expand '<cword>' }
 end, { desc = 'Search buffer for word under cursor' })
 
-vim.keymap.set({ 'n', 'i', 'v' }, '<C-b>', function()
+map({ 'n', 'i', 'v' }, '<C-b>', function()
   vim.cmd 'buffer #'
 end, { desc = 'Switch to last buffer' })
 
@@ -57,17 +56,24 @@ map('n', 'k', 'gkzz', { desc = 'move cursor up (visual line)' })
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+map('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
--- Diagnostic keymaps
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+-- diagnostic location list toggle
+map('n', '<leader>xd', function()
+  if vim.fn.getloclist(0, { winid = 0 }).winid ~= 0 then
+    vim.cmd.lclose()
+  else
+    vim.diagnostic.setloclist()
+  end
+end, { desc = 'Toggle Diagnostic Location List' })
+map('n', '<leader>xD', vim.diagnostic.open_float, { desc = 'Line Diagnostics' })
 
-vim.keymap.set('n', ',e', function()
+map('n', ',e', function()
   vim.cmd('edit ' .. vim.fn.stdpath 'config' .. '/init.lua')
 end, { desc = 'Edit init.lua' })
 
 -- Exit terminal mode
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+map('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- Move lines up/down
 map('n', '<A-j>', "<cmd>execute 'move .+' . v:count1<cr>==", { desc = 'Move line down' })
@@ -83,31 +89,6 @@ map({ 'x', 'o' }, 'n', "'Nn'[v:searchforward]", { expr = true, desc = 'Next sear
 map({ 'n' }, 'N', "'nN'[v:searchforward].'zv'", { expr = true, desc = 'Prev search result' })
 map({ 'x', 'o' }, 'N', "'nN'[v:searchforward]", { expr = true, desc = 'Prev search result' })
 
--- Diagnostic navigation
-map('n', ']d', function()
-  vim.diagnostic.jump { count = 1, float = true }
-end, { desc = 'Next Diagnostic' })
-map('n', '[d', function()
-  vim.diagnostic.jump { count = -1, float = true }
-end, { desc = 'Prev Diagnostic' })
-map('n', ']e', function()
-  vim.diagnostic.jump { count = 1, severity = vim.diagnostic.severity.ERROR, float = true }
-end, { desc = 'Next Error' })
-map('n', '[e', function()
-  vim.diagnostic.jump { count = -1, severity = vim.diagnostic.severity.ERROR, float = true }
-end, { desc = 'Prev Error' })
-map('n', ']w', function()
-  vim.diagnostic.jump { count = 1, severity = vim.diagnostic.severity.WARN, float = true }
-end, { desc = 'Next Warning' })
-map('n', '[w', function()
-  vim.diagnostic.jump { count = -1, severity = vim.diagnostic.severity.WARN, float = true }
-end, { desc = 'Prev Warning' })
-map('n', '<leader>D', vim.diagnostic.open_float, { desc = 'Line Diagnostics' })
-
--- Quickfix navigation
-map('n', ']q', vim.cmd.cnext, { desc = 'Next Quickfix' })
-map('n', '[q', vim.cmd.cprev, { desc = 'Prev Quickfix' })
-
 -- Undo breakpoints — each sentence is its own undo step
 map('i', ',', ',<c-g>u')
 map('i', '.', '.<c-g>u')
@@ -118,3 +99,9 @@ map('n', '<leader>fn', '<cmd>enew<cr>', { desc = 'New File' })
 
 -- Save
 map({ 'i', 'x', 'n', 's' }, '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
+
+-- better indenting
+map('x', '<', '<gv')
+map('x', '>', '>gv')
+-- quit
+map('n', '<leader>qq', '<cmd>qa<cr>', { desc = 'Quit All' })
