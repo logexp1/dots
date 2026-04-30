@@ -35,10 +35,6 @@ map('n', ';', ':', { desc = 'Command mode', noremap = true })
 map('v', ';', ':', { desc = 'Command mode', noremap = true })
 map('n', 'U', '<C-r>', { desc = 'Redo', noremap = true })
 
-map({ 'n', 'i', 'v' }, '<C-f>', function()
-  Snacks.picker.lines { pattern = vim.fn.expand '<cword>' }
-end, { desc = 'Search buffer for word under cursor' })
-
 map({ 'n', 'i', 'v' }, '<C-b>', function()
   vim.cmd 'buffer #'
 end, { desc = 'Switch to last buffer' })

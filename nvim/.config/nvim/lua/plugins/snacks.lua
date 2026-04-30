@@ -47,6 +47,14 @@ return {
     },
     keys = {
       {
+        '<C-f>',
+        function()
+          Snacks.picker.lines { pattern = vim.fn.expand '<cword>' }
+        end,
+        mode = { 'n', 'i', 'v' },
+        desc = 'Search buffer for word under cursor',
+      },
+      {
         '<leader><space>',
         function()
           Snacks.picker.keymaps()
