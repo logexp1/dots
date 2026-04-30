@@ -1,3 +1,15 @@
+-- LSP root → git root → cwd (mirrors LazyVim.root priority)
+local function get_root()
+  local buf = vim.api.nvim_get_current_buf()
+  for _, client in ipairs(vim.lsp.get_clients { bufnr = buf }) do
+    if client.root_dir then
+      return client.root_dir
+    end
+  end
+  local git = vim.fs.find('.git', { upward = true, path = vim.fn.expand '%:p:h' })[1]
+  return git and vim.fn.fnamemodify(git, ':h') or vim.uv.cwd()
+end
+
 return {
   {
     'folke/snacks.nvim',
@@ -71,9 +83,9 @@ return {
       {
         '<leader>/',
         function()
-          Snacks.picker.grep()
+          Snacks.picker.grep { cwd = get_root() }
         end,
-        desc = 'Live Grep',
+        desc = 'Live Grep (Root Dir)',
       },
       {
         '<leader>:',
