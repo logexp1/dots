@@ -37,7 +37,7 @@ map('v', ';', ':', { desc = 'Command mode', noremap = true })
 map('n', 'U', '<C-r>', { desc = 'Redo', noremap = true })
 
 vim.keymap.set({ 'n', 'i', 'v' }, '<C-f>', function()
-  Snacks.picker.lines({ pattern = vim.fn.expand '<cword>' })
+  Snacks.picker.lines { pattern = vim.fn.expand '<cword>' }
 end, { desc = 'Search buffer for word under cursor' })
 
 vim.keymap.set({ 'n', 'i', 'v' }, '<C-b>', function()
@@ -66,10 +66,55 @@ vim.keymap.set('n', ',e', function()
   vim.cmd('edit ' .. vim.fn.stdpath 'config' .. '/init.lua')
 end, { desc = 'Edit init.lua' })
 
--- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
---
--- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
--- or just use <C-\><C-n> to exit terminal mode
+-- Exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
+-- Move lines up/down
+map('n', '<A-j>', "<cmd>execute 'move .+' . v:count1<cr>==", { desc = 'Move line down' })
+map('n', '<A-k>', "<cmd>execute 'move .-' . (v:count1 + 1)<cr>==", { desc = 'Move line up' })
+map('i', '<A-j>', '<esc><cmd>m .+1<cr>==gi', { desc = 'Move line down' })
+map('i', '<A-k>', '<esc><cmd>m .-2<cr>==gi', { desc = 'Move line up' })
+map('v', '<A-j>', ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = 'Move selection down' })
+map('v', '<A-k>', ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = 'Move selection up' })
+
+-- n/N always forward/backward regardless of search direction
+map({ 'n' }, 'n', "'Nn'[v:searchforward].'zv'", { expr = true, desc = 'Next search result' })
+map({ 'x', 'o' }, 'n', "'Nn'[v:searchforward]", { expr = true, desc = 'Next search result' })
+map({ 'n' }, 'N', "'nN'[v:searchforward].'zv'", { expr = true, desc = 'Prev search result' })
+map({ 'x', 'o' }, 'N', "'nN'[v:searchforward]", { expr = true, desc = 'Prev search result' })
+
+-- Diagnostic navigation
+map('n', ']d', function()
+  vim.diagnostic.jump { count = 1, float = true }
+end, { desc = 'Next Diagnostic' })
+map('n', '[d', function()
+  vim.diagnostic.jump { count = -1, float = true }
+end, { desc = 'Prev Diagnostic' })
+map('n', ']e', function()
+  vim.diagnostic.jump { count = 1, severity = vim.diagnostic.severity.ERROR, float = true }
+end, { desc = 'Next Error' })
+map('n', '[e', function()
+  vim.diagnostic.jump { count = -1, severity = vim.diagnostic.severity.ERROR, float = true }
+end, { desc = 'Prev Error' })
+map('n', ']w', function()
+  vim.diagnostic.jump { count = 1, severity = vim.diagnostic.severity.WARN, float = true }
+end, { desc = 'Next Warning' })
+map('n', '[w', function()
+  vim.diagnostic.jump { count = -1, severity = vim.diagnostic.severity.WARN, float = true }
+end, { desc = 'Prev Warning' })
+map('n', '<leader>D', vim.diagnostic.open_float, { desc = 'Line Diagnostics' })
+
+-- Quickfix navigation
+map('n', ']q', vim.cmd.cnext, { desc = 'Next Quickfix' })
+map('n', '[q', vim.cmd.cprev, { desc = 'Prev Quickfix' })
+
+-- Undo breakpoints — each sentence is its own undo step
+map('i', ',', ',<c-g>u')
+map('i', '.', '.<c-g>u')
+map('i', ';', ';<c-g>u')
+
+-- Files
+map('n', '<leader>fn', '<cmd>enew<cr>', { desc = 'New File' })
+
+-- Save
+map({ 'i', 'x', 'n', 's' }, '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
