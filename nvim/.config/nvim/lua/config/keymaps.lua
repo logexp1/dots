@@ -54,14 +54,6 @@ map('n', 'k', 'gkzz', { desc = 'move cursor up (visual line)' })
 --  See `:help hlsearch`
 map('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
--- diagnostic location list toggle
-map('n', '<leader>xd', function()
-  if vim.fn.getloclist(0, { winid = 0 }).winid ~= 0 then
-    vim.cmd.lclose()
-  else
-    vim.diagnostic.setloclist()
-  end
-end, { desc = 'Toggle Diagnostic Location List' })
 map('n', '<leader>xD', vim.diagnostic.open_float, { desc = 'Line Diagnostics' })
 
 map('n', ',e', function()
