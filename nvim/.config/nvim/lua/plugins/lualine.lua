@@ -1,3 +1,61 @@
+local function get_root()
+  local buf = vim.api.nvim_get_current_buf()
+  for _, client in ipairs(vim.lsp.get_clients { bufnr = buf }) do
+    if client.root_dir then
+      return vim.uv.fs_realpath(client.root_dir) or client.root_dir
+    end
+  end
+  local git = vim.fs.find('.git', { upward = true, path = vim.fn.expand '%:p:h' })[1]
+  return git and vim.fn.fnamemodify(git, ':h') or (vim.uv.fs_realpath(vim.uv.cwd()) or vim.uv.cwd())
+end
+
+-- Shows project root name with icon when root differs from cwd
+local function root_dir()
+  local function get()
+    local root = get_root()
+    local cwd = vim.uv.fs_realpath(vim.uv.cwd()) or vim.uv.cwd()
+    if root == cwd then
+      return nil
+    end
+    return vim.fs.basename(root)
+  end
+  return {
+    function()
+      return '󱉭 ' .. (get() or '')
+    end,
+    cond = function()
+      return get() ~= nil
+    end,
+    color = function()
+      return { fg = Snacks.util.color 'Special' }
+    end,
+  }
+end
+
+-- Shows file path relative to root/cwd, truncated to 3 parts, with modified indicator
+local function pretty_path()
+  return function()
+    local path = vim.fn.expand '%:p'
+    if path == '' then
+      return ''
+    end
+
+    local root = get_root()
+    if path:find(root, 1, true) == 1 then
+      path = path:sub(#root + 2)
+    end
+
+    local parts = vim.split(path, '/', { plain = true })
+    if #parts > 3 then
+      parts = { parts[1], '…', unpack(parts, #parts - 1, #parts) }
+    end
+    if vim.bo.modified then
+      parts[#parts] = parts[#parts] .. ''
+    end
+    return table.concat(parts, '/')
+  end
+end
+
 return {
   {
     'nvim-lualine/lualine.nvim',
@@ -13,7 +71,6 @@ return {
     opts = function()
       vim.o.laststatus = vim.g.lualine_laststatus
 
-      -- Lazily initialize trouble statusline (trouble loads on demand)
       local trouble_symbols
       local function get_trouble()
         if not trouble_symbols and package.loaded['trouble'] then
@@ -39,31 +96,53 @@ return {
           lualine_a = { 'mode' },
           lualine_b = { 'branch' },
           lualine_c = {
-            { 'filename', path = 1, symbols = { modified = '  ', readonly = '', unnamed = '' } },
+            root_dir(),
             {
-              function() local t = get_trouble(); return t and t.get() or '' end,
-              cond = function() local t = get_trouble(); return t ~= nil and t.has() end,
+              'diagnostics',
+              symbols = { error = '󰅚 ', warn = '󰀪 ', info = '󰋽 ', hint = '󰌶 ' },
+            },
+            { 'filetype', icon_only = true, separator = '', padding = { left = 1, right = 0 } },
+            { pretty_path() },
+            {
+              function()
+                local t = get_trouble()
+                return t and t.get() or ''
+              end,
+              cond = function()
+                local t = get_trouble()
+                return t ~= nil and t.has()
+              end,
             },
           },
           lualine_x = {
             {
-              function() return require('noice').api.status.command.get() end,
-              cond = function() return package.loaded['noice'] and require('noice').api.status.command.has() end,
-              color = function() return { fg = Snacks.util.color 'Statement' } end,
+              function()
+                return require('noice').api.status.command.get()
+              end,
+              cond = function()
+                return package.loaded['noice'] and require('noice').api.status.command.has()
+              end,
+              color = function()
+                return { fg = Snacks.util.color 'Statement' }
+              end,
             },
             {
-              function() return require('noice').api.status.mode.get() end,
-              cond = function() return package.loaded['noice'] and require('noice').api.status.mode.has() end,
-              color = function() return { fg = Snacks.util.color 'Constant' } end,
+              function()
+                return require('noice').api.status.mode.get()
+              end,
+              cond = function()
+                return package.loaded['noice'] and require('noice').api.status.mode.has()
+              end,
+              color = function()
+                return { fg = Snacks.util.color 'Constant' }
+              end,
             },
             {
               require('lazy.status').updates,
               cond = require('lazy.status').has_updates,
-              color = function() return { fg = Snacks.util.color 'Special' } end,
-            },
-            {
-              'diagnostics',
-              symbols = { error = '󰅚 ', warn = '󰀪 ', info = '󰋽 ', hint = '󰌶 ' },
+              color = function()
+                return { fg = Snacks.util.color 'Special' }
+              end,
             },
             {
               'diff',
@@ -81,7 +160,9 @@ return {
             { 'location', padding = { left = 0, right = 1 } },
           },
           lualine_z = {
-            function() return ' ' .. os.date '%R' end,
+            function()
+              return ' ' .. os.date '%R'
+            end,
           },
         },
         extensions = { 'lazy', 'trouble' },
