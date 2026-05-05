@@ -63,7 +63,7 @@ return {
         ['<Tab>'] = { 'snippet_forward', 'select_next', 'fallback' },
         ['<S-Tab>'] = { 'snippet_backward', 'select_prev', 'fallback' },
         ['<CR>'] = { 'select_and_accept', 'fallback' },
-        ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
+        ['<C-h>'] = { 'show', 'show_documentation', 'hide_documentation' },
         ['<C-e>'] = { 'hide' },
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:

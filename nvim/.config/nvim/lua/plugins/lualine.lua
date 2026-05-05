@@ -115,6 +115,7 @@ return {
             },
           },
           lualine_x = {
+            Snacks.profiler.status(),
             {
               function()
                 return require('noice').api.status.command.get()
