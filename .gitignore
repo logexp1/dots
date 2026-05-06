@@ -5,6 +5,7 @@ tmp/
 *.backup
 .#*
 common/.gnupg/*/
+common/.gnupg/random_seed
 common/.gnupg/*db*
 common/.gnupg/reader_*.status
 common/.gnupg/*.kbx*
