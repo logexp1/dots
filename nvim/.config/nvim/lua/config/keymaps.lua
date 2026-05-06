@@ -17,7 +17,7 @@ map('n', 'tk', '<C-w>k', { desc = 'Go to upper window' })
 map('n', 'tl', '<C-w>l', { desc = 'Go to right window' })
 
 map('n', 'tq', ':close<CR>', { desc = 'close current window', noremap = true, silent = true })
-map('n', 'td', ':bdelete<CR>', { desc = 'delete current window', noremap = true, silent = true })
+map('n', 'td', ':bdelete!<CR>', { desc = 'delete current window', noremap = true, silent = true })
 map('n', 'tm', '<C-w>o', { desc = 'Close other windows' })
 
 map('n', 't=', '<C-w>=', { desc = 'equalize window sizes' })

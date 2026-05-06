@@ -13,16 +13,22 @@ return {
       local oil = require 'oil'
       local entry = oil.get_cursor_entry()
       local dir = oil.get_current_dir()
-      if not entry or not dir then return nil end
+      if not entry or not dir then
+        return nil
+      end
       return dir .. entry.name
     end
 
     local function refresh_marks(buf)
       local ok, oil = pcall(require, 'oil')
-      if not ok then return end
+      if not ok then
+        return
+      end
       vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
       local dir = oil.get_current_dir(buf)
-      if not dir then return end
+      if not dir then
+        return
+      end
       for i = 1, vim.api.nvim_buf_line_count(buf) do
         local entry = oil.get_entry_on_line(buf, i)
         if entry and marks[dir .. entry.name] then
@@ -36,8 +42,14 @@ return {
 
     local function toggle_mark()
       local path = get_entry_path()
-      if not path then return end
-      if marks[path] then marks[path] = nil else marks[path] = true end
+      if not path then
+        return
+      end
+      if marks[path] then
+        marks[path] = nil
+      else
+        marks[path] = true
+      end
       local buf = vim.api.nvim_get_current_buf()
       refresh_marks(buf)
       local row = vim.api.nvim_win_get_cursor(0)[1]
@@ -48,7 +60,9 @@ return {
 
     local function unmark()
       local path = get_entry_path()
-      if not path then return end
+      if not path then
+        return
+      end
       marks[path] = nil
       local buf = vim.api.nvim_get_current_buf()
       refresh_marks(buf)
@@ -92,9 +106,21 @@ return {
         vim.notify('Errors:\n' .. table.concat(errors, '\n'), vim.log.levels.ERROR)
       else
         vim.notify((move and 'Moved' or 'Copied') .. ' ' .. #paths .. ' file(s) to ' .. dest)
-        if move then clear_marks() end
+        if move then
+          clear_marks()
+        end
       end
-      oil.open(dest)
+
+      -- 모든 보이는 oil 윈도우 refresh (양쪽 pane 동기화)
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        local name = vim.api.nvim_buf_get_name(buf)
+        if name:match '^oil://' then
+          vim.api.nvim_win_call(win, function()
+            vim.cmd 'edit'
+          end)
+        end
+      end
     end
 
     -- ── File openers ────────────────────────────────────────────────────
@@ -103,32 +129,53 @@ return {
     end
 
     local openers = {
-      edit    = function(p) vim.cmd('edit ' .. vim.fn.fnameescape(p)) end,
-      browse  = function(p) launch(p, { 'firefox' }) end,
-      image   = function(p) launch(p, { 'imv' }) end,
-      video   = function(p) launch(p, { 'mpv', '--save-position-on-quit' }) end,
-      audio   = function(p) launch(p, { 'mpv', '--no-video', '--osd-level=3' }) end,
-      pdf     = function(p) launch(p, { 'zathura' }) end,
-      office  = function(p) launch(p, { 'flatpak', 'run', 'org.libreoffice.LibreOffice' }) end,
-      torrent = function(p) launch(p, { 'transmission-remote', '--add' }) end,
-      gimp    = function(p) launch(p, { 'gimp' }) end,
+      edit = function(p)
+        vim.cmd('edit ' .. vim.fn.fnameescape(p))
+      end,
+      browse = function(p)
+        launch(p, { 'firefox' })
+      end,
+      image = function(p)
+        launch(p, { 'loupe' })
+      end,
+      video = function(p)
+        launch(p, { 'mpv', '--save-position-on-quit' })
+      end,
+      audio = function(p)
+        launch(p, { 'mpv', '--no-video', '--osd-level=3' })
+      end,
+      pdf = function(p)
+        launch(p, { 'evince' })
+      end,
+      office = function(p)
+        launch(p, { 'flatpak', 'run', 'org.libreoffice.LibreOffice' })
+      end,
+      torrent = function(p)
+        launch(p, { 'transmission-remote', '--add' })
+      end,
+      gimp = function(p)
+        launch(p, { 'gimp' })
+      end,
     }
 
     local open_rules = {
-      { mime = '^text/html',                                    opener = 'browse' },
-      { name = '%.xcf$',                                        opener = 'gimp' },
-      { mime = '^image/',                                       opener = 'image' },
-      { mime = '^video/',                                       opener = 'video' },
-      { mime = '^audio/',                                       opener = 'audio' },
-      { mime = 'application/ogg',                               opener = 'audio' },
-      { mime = 'application/pdf',                               opener = 'pdf' },
-      { name = '%.(pptx|docx|xlsx|odt|ods|odp|ppt|doc|xls)$', opener = 'office' },
-      { name = '%.torrent$',                                    opener = 'torrent' },
-      { mime = 'application/x%-bittorrent',                    opener = 'torrent' },
-      { mime = '^text/',                                        opener = 'edit' },
-      { mime = 'application/json',                              opener = 'edit' },
-      { mime = 'application/xml',                               opener = 'edit' },
-      { mime = 'inode/x%-empty',                                opener = 'edit' },
+      { mime = '^text/html', opener = 'browse' },
+      { name = '%.xcf$', opener = 'gimp' },
+      { mime = '^image/', opener = 'image' },
+      { mime = '^video/', opener = 'video' },
+      { mime = '^audio/', opener = 'audio' },
+      { mime = 'application/ogg', opener = 'audio' },
+      { mime = 'application/pdf', opener = 'pdf' },
+      { mime = 'application/vnd%.openxmlformats', opener = 'office' },
+      { mime = 'application/vnd%.oasis%.opendocument', opener = 'office' },
+      { mime = 'application/vnd%.ms%-', opener = 'office' },
+      { mime = 'application/msword', opener = 'office' },
+      { name = '%.torrent$', opener = 'torrent' },
+      { mime = 'application/x%-bittorrent', opener = 'torrent' },
+      { mime = '^text/', opener = 'edit' },
+      { mime = 'application/json', opener = 'edit' },
+      { mime = 'application/xml', opener = 'edit' },
+      { mime = 'inode/x%-empty', opener = 'edit' },
     }
 
     local function open_file(filepath, name)
@@ -145,13 +192,17 @@ return {
     local function smart_enter()
       local oil = require 'oil'
       local entry = oil.get_cursor_entry()
-      if not entry then return end
+      if not entry then
+        return
+      end
       if entry.type == 'directory' then
         require('oil.actions').select.callback()
         return
       end
       local dir = oil.get_current_dir()
-      if not dir then return end
+      if not dir then
+        return
+      end
       open_file(dir .. entry.name, entry.name)
     end
 
@@ -159,14 +210,16 @@ return {
       local oil = require 'oil'
       local entry = oil.get_cursor_entry()
       local dir = oil.get_current_dir()
-      if not entry or not dir then return end
+      if not entry or not dir then
+        return
+      end
       local filepath = dir .. entry.name
       vim.ui.input({ prompt = 'chmod ' .. entry.name .. ': ' }, function(mode)
-        if not mode or mode == '' then return end
+        if not mode or mode == '' then
+          return
+        end
         local use_sudo = vim.fn.filewritable(filepath) == 0
-        local cmd = use_sudo
-          and { 'sudo', 'chmod', mode, filepath }
-          or { 'chmod', mode, filepath }
+        local cmd = use_sudo and { 'sudo', 'chmod', mode, filepath } or { 'chmod', mode, filepath }
         local result = vim.system(cmd):wait()
         if result.code ~= 0 then
           vim.notify(result.stderr, vim.log.levels.ERROR)
@@ -180,25 +233,55 @@ return {
       local oil = require 'oil'
       local entry = oil.get_cursor_entry()
       local dir = oil.get_current_dir()
-      if not entry then return end
+      if not entry then
+        return
+      end
       vim.fn.jobstart({ 'aunpack', '-D', entry.name }, {
         cwd = dir,
         on_exit = function(_, code)
-          if code == 0 then require('oil').open(dir) end
+          if code == 0 then
+            require('oil').open(dir)
+          end
         end,
       })
     end
 
     vim.api.nvim_create_autocmd('BufEnter', {
       pattern = 'oil://*',
-      callback = function(ev) refresh_marks(ev.buf) end,
+      callback = function(ev)
+        refresh_marks(ev.buf)
+      end,
+    })
+
+    -- ── Cursor position memory ───────────────────────────────────────────
+    local cursor_positions = {}
+
+    vim.api.nvim_create_autocmd('BufLeave', {
+      pattern = 'oil://*',
+      callback = function(ev)
+        cursor_positions[vim.api.nvim_buf_get_name(ev.buf)] = vim.api.nvim_win_get_cursor(0)
+      end,
+    })
+
+    vim.api.nvim_create_autocmd('BufEnter', {
+      pattern = 'oil://*',
+      callback = function(ev)
+        vim.schedule(function()
+          local pos = cursor_positions[vim.api.nvim_buf_get_name(ev.buf)]
+          if pos and pos[1] <= vim.api.nvim_buf_line_count(ev.buf) then
+            pcall(vim.api.nvim_win_set_cursor, 0, pos)
+          end
+        end)
+      end,
     })
 
     local function s(sort)
-      return function() require('oil').set_sort(sort) end
+      return function()
+        require('oil').set_sort(sort)
+      end
     end
 
-    local sort_hydra = require('hydra')({
+    local sort_hydra = require 'hydra' {
       name = 'Sort',
       mode = 'n',
       hint = [[
@@ -211,20 +294,20 @@ return {
 ]],
       config = { hint = { type = 'window', position = 'bottom' } },
       heads = {
-        { 'n', s { { 'type', 'asc' }, { 'name', 'asc' } },       { desc = 'Name (A→Z)',         exit = true } },
-        { 'N', s { { 'type', 'asc' }, { 'name', 'desc' } },      { desc = 'Name (Z→A)',         exit = true } },
-        { 's', s { { 'type', 'asc' }, { 'size', 'asc' } },       { desc = 'Size (small→large)', exit = true } },
-        { 'S', s { { 'type', 'asc' }, { 'size', 'desc' } },      { desc = 'Size (large→small)', exit = true } },
-        { 'm', s { { 'type', 'asc' }, { 'mtime', 'desc' } },     { desc = 'Modified (newest)',  exit = true } },
-        { 'M', s { { 'type', 'asc' }, { 'mtime', 'asc' } },      { desc = 'Modified (oldest)',  exit = true } },
-        { 'c', s { { 'type', 'asc' }, { 'birthtime', 'desc' } }, { desc = 'Created (newest)',   exit = true } },
-        { 'C', s { { 'type', 'asc' }, { 'birthtime', 'asc' } },  { desc = 'Created (oldest)',   exit = true } },
-        { 'a', s { { 'type', 'asc' }, { 'atime', 'desc' } },     { desc = 'Accessed (newest)',  exit = true } },
-        { 'A', s { { 'type', 'asc' }, { 'atime', 'asc' } },      { desc = 'Accessed (oldest)',  exit = true } },
+        { 'n', s { { 'type', 'asc' }, { 'name', 'asc' } }, { desc = 'Name (A→Z)', exit = true } },
+        { 'N', s { { 'type', 'asc' }, { 'name', 'desc' } }, { desc = 'Name (Z→A)', exit = true } },
+        { 's', s { { 'type', 'asc' }, { 'size', 'asc' } }, { desc = 'Size (small→large)', exit = true } },
+        { 'S', s { { 'type', 'asc' }, { 'size', 'desc' } }, { desc = 'Size (large→small)', exit = true } },
+        { 'm', s { { 'type', 'asc' }, { 'mtime', 'desc' } }, { desc = 'Modified (newest)', exit = true } },
+        { 'M', s { { 'type', 'asc' }, { 'mtime', 'asc' } }, { desc = 'Modified (oldest)', exit = true } },
+        { 'c', s { { 'type', 'asc' }, { 'birthtime', 'desc' } }, { desc = 'Created (newest)', exit = true } },
+        { 'C', s { { 'type', 'asc' }, { 'birthtime', 'asc' } }, { desc = 'Created (oldest)', exit = true } },
+        { 'a', s { { 'type', 'asc' }, { 'atime', 'desc' } }, { desc = 'Accessed (newest)', exit = true } },
+        { 'A', s { { 'type', 'asc' }, { 'atime', 'asc' } }, { desc = 'Accessed (oldest)', exit = true } },
         { '<Esc>', nil, { exit = true, desc = false } },
-        { 'q',    nil, { exit = true, desc = false } },
+        { 'q', nil, { exit = true, desc = false } },
       },
-    })
+    }
 
     -- ── Bookmarks ───────────────────────────────────────────────────────
     local bookmarks = {
@@ -241,7 +324,9 @@ return {
     for key, path in pairs(bookmarks) do
       bookmark_maps["'" .. key] = {
         desc = 'Jump to ' .. path,
-        callback = function() require('oil').open(path) end,
+        callback = function()
+          require('oil').open(path)
+        end,
       }
     end
 
@@ -264,14 +349,21 @@ return {
       cleanup_delay_ms = 2000,
       view_options = {
         show_hidden = true,
-        is_always_hidden = function(name, _) return name == '..' end,
+        is_always_hidden = function(name, _)
+          return name == '..'
+        end,
       },
       keymaps = vim.tbl_extend('force', {
         ['q'] = 'actions.close',
         ['<CR>'] = { desc = 'Smart enter', callback = smart_enter },
         ['<S-h>'] = { 'actions.parent', mode = 'n' },
         ['<S-l>'] = 'actions.select',
-        ['O'] = { desc = 'Sort', callback = function() sort_hydra:activate() end },
+        ['O'] = {
+          desc = 'Sort',
+          callback = function()
+            sort_hydra:activate()
+          end,
+        },
         ['s'] = { 'actions.change_sort', mode = 'n' },
         ['?'] = { 'actions.show_help', mode = 'n' },
         ['x'] = { desc = 'Extract archive', callback = extract_archive },
@@ -280,9 +372,13 @@ return {
           desc = 'Create directory',
           callback = function()
             local dir = require('oil').get_current_dir()
-            if not dir then return end
+            if not dir then
+              return
+            end
             vim.ui.input({ prompt = 'New directory: ' }, function(name)
-              if not name or name == '' then return end
+              if not name or name == '' then
+                return
+              end
               vim.system({ 'mkdir', '-p', dir .. name }):wait()
               require('oil').open(dir)
             end)
@@ -292,8 +388,18 @@ return {
         ['m'] = { desc = 'Toggle mark', callback = toggle_mark },
         ['<S-Tab>'] = { desc = 'Unmark under cursor', callback = unmark },
         ['M'] = { desc = 'Clear all marks', callback = clear_marks },
-        ['p'] = { desc = 'Paste (copy) marked files here', callback = function() paste_marks(false) end },
-        ['P'] = { desc = 'Paste (move) marked files here', callback = function() paste_marks(true) end },
+        ['p'] = {
+          desc = 'Paste (copy) marked files here',
+          callback = function()
+            paste_marks(false)
+          end,
+        },
+        ['P'] = {
+          desc = 'Paste (move) marked files here',
+          callback = function()
+            paste_marks(true)
+          end,
+        },
         ['gs'] = {
           desc = 'Open vertical split',
           callback = function()
