@@ -4,6 +4,10 @@ local map = vim.keymap.set
 -- 	{ "t", group = "+t-prefix" },
 -- })
 
+-- Swap ; and : so ; enters command mode and : repeats f/t motion
+map({ 'n', 'v' }, ';', ':', { desc = 'Command mode' })
+map({ 'n', 'v' }, ':', ';', { desc = 'Repeat f/t motion' })
+
 -- Swap q and Q for macro recording
 map('n', 'q', '<Nop>', { desc = 'Disabled (use Q for macros)' })
 map('n', 'Q', 'q', { desc = 'Record macro' })
@@ -31,8 +35,6 @@ map('v', 'tc', 'gc', { desc = 'Togle comment selection', remap = true })
 map('i', '<Esc>', '<Esc>`^', { desc = 'Exit insert mode without moving cursor' })
 map('n', 'a', 'A', { desc = 'Append at end of line' })
 
-map('n', ';', ':', { desc = 'Command mode', noremap = true })
-map('v', ';', ':', { desc = 'Command mode', noremap = true })
 map('n', 'U', '<C-r>', { desc = 'Redo', noremap = true })
 
 map({ 'n', 'i', 'v' }, '<C-b>', function()
