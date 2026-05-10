@@ -88,6 +88,9 @@ hyprland-autoname-workspaces cargo
 eza cargo
 yazi-build cargo
 git+https://github.com/Feel-ix-343/markdown-oxide.git#markdown-oxide cargo
+iwe cargo
+iwes cargo
+iwec cargo
 
 # npm packages
 yaml-language-server npm
