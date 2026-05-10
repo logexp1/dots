@@ -38,7 +38,10 @@ map('n', 'a', 'A', { desc = 'Append at end of line' })
 map('n', 'U', '<C-r>', { desc = 'Redo', noremap = true })
 
 map({ 'n', 'i', 'v' }, '<C-b>', function()
-  vim.cmd 'buffer #'
+  local alt = vim.fn.bufnr '#'
+  if alt ~= -1 and vim.api.nvim_buf_is_valid(alt) then
+    vim.cmd 'buffer #'
+  end
 end, { desc = 'Switch to last buffer' })
 
 map('n', '<C-j>', '<C-d>zz', { desc = 'Scroll down half page' })
@@ -95,3 +98,18 @@ map('x', '<', '<gv')
 map('x', '>', '>gv')
 -- quit
 map('n', '<leader>qq', '<cmd>qa<cr>', { desc = 'Quit All' })
+
+-- markdown buffer에서만 원하는 매핑 수동 등록
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'markdown',
+  callback = function(args)
+    local opts = { buffer = args.buf, silent = true }
+    vim.keymap.set('n', '<CR>', '<Plug>(iwe-lsp-go-to-definition)', opts)
+    vim.keymap.set('v', '<CR>', '<Plug>(iwe-lsp-link)', opts)
+    vim.keymap.set('i', '/d', '<Plug>(iwe-insert-date)', opts)
+    vim.keymap.set('i', '/w', '<Plug>(iwe-insert-week)', opts)
+    vim.keymap.set('n', '<C-n>', '<Plug>(iwe-next-link)', opts)
+    vim.keymap.set('n', '<C-p>', '<Plug>(iwe-prev-link)', opts)
+    -- "-" 는 의도적으로 제외 → oil 유지
+  end,
+})

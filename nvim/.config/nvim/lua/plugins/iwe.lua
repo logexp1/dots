@@ -15,7 +15,7 @@ return {
         debounce_text_changes = 500,
       },
       mappings = {
-        enable_markdown_mappings = true,
+        enable_markdown_mappings = false,
         enable_picker_keybindings = true, -- gf, gs, ga, g/, gb, gR, go
         enable_lsp_keybindings = true, -- <leader>h, <leader>l (refactor)
         enable_preview_keybindings = true, -- <leader>ps, pe, ph, pw
