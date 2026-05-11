@@ -144,9 +144,6 @@ run() {
     echo "${FINGERPRINT}:5:" | gpg --import-ownertrust
     gpg --check-trustdb
 
-    # Remove expiration (idempotent) - consider whether you really want this
-    log_step "gpg" "Removing key expiration..."
-    gpg --quick-set-expire "$FINGERPRINT" 0 '*'
 
     # Clone password store and initialise (only on first setup)
     if [[ -d "$PASS_DIR" ]]; then
