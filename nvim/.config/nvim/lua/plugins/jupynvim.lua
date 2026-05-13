@@ -38,28 +38,28 @@ return {
       -- 1. jupynvim의 <C-j>/<C-k>를 글로벌 스크롤 동작으로 덮어쓰기
       --    (jupynvim 기본은 prev/next cell output 진입이지만,
       --     글로벌 half-page scroll을 더 자주 쓰므로 우선)
-      vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWinEnter' }, {
-        pattern = '*.ipynb',
-        callback = function()
-          vim.defer_fn(function()
-            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-              if vim.api.nvim_buf_is_valid(buf) then
-                local name = vim.api.nvim_buf_get_name(buf)
-                if name:match '%.ipynb$' then
-                  vim.keymap.set('n', '<C-j>', '<C-d>zz', {
-                    buffer = buf,
-                    desc = 'Scroll down half page (override jupynvim)',
-                  })
-                  vim.keymap.set('n', '<C-k>', '<C-u>zz', {
-                    buffer = buf,
-                    desc = 'Scroll up half page (override jupynvim)',
-                  })
-                end
-              end
-            end
-          end, 200)
-        end,
-      })
+      -- vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWinEnter' }, {
+      --   pattern = '*.ipynb',
+      --   callback = function()
+      --     vim.defer_fn(function()
+      --       for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      --         if vim.api.nvim_buf_is_valid(buf) then
+      --           local name = vim.api.nvim_buf_get_name(buf)
+      --           if name:match '%.ipynb$' then
+      --             vim.keymap.set('n', '<C-j>', '<C-d>zz', {
+      --               buffer = buf,
+      --               desc = 'Scroll down half page (override jupynvim)',
+      --             })
+      --             vim.keymap.set('n', '<C-k>', '<C-u>zz', {
+      --               buffer = buf,
+      --               desc = 'Scroll up half page (override jupynvim)',
+      --             })
+      --           end
+      --         end
+      --       end
+      --     end, 200)
+      --   end,
+      -- })
 
       -- 2. 추가 keymap (자주 쓸 만한 것들)
       vim.api.nvim_create_autocmd('FileType', {
