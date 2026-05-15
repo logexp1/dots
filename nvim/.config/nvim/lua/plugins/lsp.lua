@@ -118,9 +118,6 @@ return {
         ensure_installed = {},
         automatic_enable = { exclude = { 'stylua' } },
       }
-
-      -- markdown-oxide: installed via cargo, not managed by mason
-      vim.lsp.enable 'markdown_oxide'
     end,
   },
 }

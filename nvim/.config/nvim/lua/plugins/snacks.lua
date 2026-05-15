@@ -63,10 +63,18 @@ return {
         local info_dir = vim.fn.expand '~/.local/share/Trash/info'
 
         local function fmt_size(bytes)
-          if not bytes then return '   ?' end
-          if bytes < 1024 then return string.format('%4d', bytes) end
-          if bytes < 1024 * 1024 then return string.format('%3.0fk', bytes / 1024) end
-          if bytes < 1024 * 1024 * 1024 then return string.format('%3.0fM', bytes / (1024 * 1024)) end
+          if not bytes then
+            return '   ?'
+          end
+          if bytes < 1024 then
+            return string.format('%4d', bytes)
+          end
+          if bytes < 1024 * 1024 then
+            return string.format('%3.0fk', bytes / 1024)
+          end
+          if bytes < 1024 * 1024 * 1024 then
+            return string.format('%3.0fM', bytes / (1024 * 1024))
+          end
           return string.format('%3.0fG', bytes / (1024 * 1024 * 1024))
         end
 
@@ -76,7 +84,9 @@ return {
           local i = 0
           while true do
             local name, ftype = vim.uv.fs_scandir_next(handle)
-            if not name then break end
+            if not name then
+              break
+            end
             i = i + 1
             local info_path = info_dir .. '/' .. name .. '.trashinfo'
             local file_path = files_dir .. '/' .. name
@@ -92,7 +102,9 @@ return {
                   return string.char(tonumber(hex, 16))
                 end)
               end
-              if d then date = d:gsub('T', ' ') end
+              if d then
+                date = d:gsub('T', ' ')
+              end
             end
             local stat = vim.uv.fs_stat(file_path)
             table.insert(items, {
@@ -114,7 +126,9 @@ return {
           return
         end
 
-        table.sort(items, function(a, b) return a.date > b.date end)
+        table.sort(items, function(a, b)
+          return a.date > b.date
+        end)
         local seen, deduped = {}, {}
         for _, item in ipairs(items) do
           if not seen[item.original] then
@@ -123,26 +137,32 @@ return {
           end
         end
         items = deduped
-        for i, item in ipairs(items) do item.idx = i end
+        for i, item in ipairs(items) do
+          item.idx = i
+        end
 
         Snacks.picker.pick {
           title = '  Trash',
           preview = false,
           layout = { preset = 'telescope' },
-          finder = function() return items end,
+          finder = function()
+            return items
+          end,
           format = function(item, _)
             local t = item.is_dir and { 'd', 'Directory' } or { '-', 'Comment' }
             return {
-              { t[1] .. '  ',          t[2] },
+              { t[1] .. '  ', t[2] },
               { item.size_str .. '  ', 'Number' },
-              { item.date .. '  ',     'Comment' },
-              { item.original,          item.is_dir and 'Directory' or 'SnacksPickerFile' },
+              { item.date .. '  ', 'Comment' },
+              { item.original, item.is_dir and 'Directory' or 'SnacksPickerFile' },
             }
           end,
           confirm = function(picker, _)
             local selected = picker:selected { fallback = true }
             local label = #selected == 1 and ('"' .. selected[1].name .. '"') or (#selected .. ' files')
-            if vim.fn.confirm('Restore ' .. label .. '?', '&Yes\n&No', 2) ~= 1 then return end
+            if vim.fn.confirm('Restore ' .. label .. '?', '&Yes\n&No', 2) ~= 1 then
+              return
+            end
             picker:close()
             local ok, fail = 0, 0
             for _, sel in ipairs(selected) do
@@ -175,7 +195,9 @@ return {
             purge = function(picker, _)
               local selected = picker:selected { fallback = true }
               local label = #selected == 1 and ('"' .. selected[1].name .. '"') or (#selected .. ' files')
-              if vim.fn.confirm('Permanently delete ' .. label .. '?', '&Yes\n&No', 2) ~= 1 then return end
+              if vim.fn.confirm('Permanently delete ' .. label .. '?', '&Yes\n&No', 2) ~= 1 then
+                return
+              end
               picker:close()
               for _, sel in ipairs(selected) do
                 vim.fn.delete(sel.file, 'rf')
