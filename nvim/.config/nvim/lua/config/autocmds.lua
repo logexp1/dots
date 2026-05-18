@@ -99,6 +99,22 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 
+-- Markdown: lcd to IWE workspace root before iwes LSP starts.
+-- BufReadPost fires before FileType, so iwes initializes with the correct cwd.
+-- (BufReadPre is too early: E201 forbids side effects like :lcd there.)
+vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufNewFile' }, {
+  group = augroup 'md_root_cd',
+  pattern = '*.md',
+  callback = function(args)
+    local file = vim.api.nvim_buf_get_name(args.buf)
+    if file == '' then return end
+    local root = vim.fs.root(file, { '.iwe', '.git' })
+    if root and root ~= vim.fn.getcwd(0) then
+      vim.cmd.lcd(root)
+    end
+  end,
+})
+
 -- Show all characters in JSON (no concealing)
 vim.api.nvim_create_autocmd('FileType', {
   group = augroup 'json_conceal',
