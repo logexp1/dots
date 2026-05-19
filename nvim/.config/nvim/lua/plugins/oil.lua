@@ -253,6 +253,21 @@ return {
       end,
     })
 
+    -- ── Auto-refresh on focus regain ────────────────────────────────────
+    -- Pick up files added/removed externally when nvim regains focus.
+    -- Skip if buffer is dirty so in-progress rename/create edits aren't lost.
+    vim.api.nvim_create_autocmd('FocusGained', {
+      pattern = 'oil://*',
+      callback = function(ev)
+        if vim.bo[ev.buf].modified then return end
+        vim.schedule(function()
+          if vim.api.nvim_buf_is_valid(ev.buf) and not vim.bo[ev.buf].modified then
+            vim.api.nvim_buf_call(ev.buf, function() vim.cmd 'edit' end)
+          end
+        end)
+      end,
+    })
+
     -- ── Cursor position memory ───────────────────────────────────────────
     local cursor_positions = {}
 
