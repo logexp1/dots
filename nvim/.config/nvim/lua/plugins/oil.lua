@@ -233,14 +233,28 @@ return {
       local oil = require 'oil'
       local entry = oil.get_cursor_entry()
       local dir = oil.get_current_dir()
-      if not entry then
+      if not entry or not dir then
         return
       end
-      vim.fn.jobstart({ 'aunpack', '-D', entry.name }, {
+      local name = entry.name
+      vim.notify('Extracting ' .. name .. '...', vim.log.levels.INFO)
+      local stderr_lines = {}
+      vim.fn.jobstart({ 'aunpack', '-D', name }, {
         cwd = dir,
+        on_stderr = function(_, data)
+          for _, line in ipairs(data) do
+            if line ~= '' then
+              table.insert(stderr_lines, line)
+            end
+          end
+        end,
         on_exit = function(_, code)
           if code == 0 then
+            vim.notify('Extracted ' .. name, vim.log.levels.INFO)
             require('oil').open(dir)
+          else
+            local err = #stderr_lines > 0 and ('\n' .. table.concat(stderr_lines, '\n')) or ''
+            vim.notify('Failed to extract ' .. name .. err, vim.log.levels.ERROR)
           end
         end,
       })
