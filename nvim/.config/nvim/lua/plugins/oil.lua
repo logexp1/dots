@@ -417,13 +417,14 @@ return {
         ['m'] = { desc = 'Toggle mark', callback = toggle_mark },
         ['<S-Tab>'] = { desc = 'Unmark under cursor', callback = unmark },
         ['M'] = { desc = 'Clear all marks', callback = clear_marks },
-        ['p'] = {
+        ['p'] = { desc = '', callback = function() end },
+        ['pp'] = {
           desc = 'Paste (copy) marked files here',
           callback = function()
             paste_marks(false)
           end,
         },
-        ['P'] = {
+        ['pm'] = {
           desc = 'Paste (move) marked files here',
           callback = function()
             paste_marks(true)
