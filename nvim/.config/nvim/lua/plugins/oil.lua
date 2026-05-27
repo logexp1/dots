@@ -19,6 +19,20 @@ return {
       return dir .. entry.name
     end
 
+    local function refresh_oil_windows()
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.api.nvim_buf_is_valid(buf) and not vim.bo[buf].modified then
+          local name = vim.api.nvim_buf_get_name(buf)
+          if name:match '^oil://' then
+            vim.api.nvim_win_call(win, function()
+              vim.cmd 'edit'
+            end)
+          end
+        end
+      end
+    end
+
     local function refresh_marks(buf)
       local ok, oil = pcall(require, 'oil')
       if not ok then
@@ -112,15 +126,7 @@ return {
       end
 
       -- 모든 보이는 oil 윈도우 refresh (양쪽 pane 동기화)
-      for _, win in ipairs(vim.api.nvim_list_wins()) do
-        local buf = vim.api.nvim_win_get_buf(win)
-        local name = vim.api.nvim_buf_get_name(buf)
-        if name:match '^oil://' then
-          vim.api.nvim_win_call(win, function()
-            vim.cmd 'edit'
-          end)
-        end
-      end
+      refresh_oil_windows()
     end
 
     -- ── File openers ────────────────────────────────────────────────────
@@ -251,7 +257,7 @@ return {
         on_exit = function(_, code)
           if code == 0 then
             vim.notify('Extracted ' .. name, vim.log.levels.INFO)
-            require('oil').open(dir)
+            vim.schedule(refresh_oil_windows)
           else
             local err = #stderr_lines > 0 and ('\n' .. table.concat(stderr_lines, '\n')) or ''
             vim.notify('Failed to extract ' .. name .. err, vim.log.levels.ERROR)
@@ -268,17 +274,12 @@ return {
     })
 
     -- ── Auto-refresh on focus regain ────────────────────────────────────
-    -- Pick up files added/removed externally when nvim regains focus.
-    -- Skip if buffer is dirty so in-progress rename/create edits aren't lost.
+    -- FocusGained is a global UI event with no <afile>, so a buffer
+    -- pattern like 'oil://*' never matches. Register globally and walk
+    -- visible oil windows in the callback.
     vim.api.nvim_create_autocmd('FocusGained', {
-      pattern = 'oil://*',
-      callback = function(ev)
-        if vim.bo[ev.buf].modified then return end
-        vim.schedule(function()
-          if vim.api.nvim_buf_is_valid(ev.buf) and not vim.bo[ev.buf].modified then
-            vim.api.nvim_buf_call(ev.buf, function() vim.cmd 'edit' end)
-          end
-        end)
+      callback = function()
+        vim.schedule(refresh_oil_windows)
       end,
     })
 
