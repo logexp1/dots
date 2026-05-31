@@ -6,6 +6,7 @@ ripgrep
 sqlite3
 libsqlite3-dev
 fd-find
+atool
 fcitx5-hangul
 onedrive
 pass

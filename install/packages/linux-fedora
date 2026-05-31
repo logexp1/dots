@@ -12,6 +12,7 @@ udiskie
 sshfs
 podman
 cpio
+atool
 cmake
 gcc-c++
 
