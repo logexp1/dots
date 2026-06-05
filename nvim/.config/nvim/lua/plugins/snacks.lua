@@ -10,6 +10,26 @@ local function get_root()
   return git and vim.fn.fnamemodify(git, ':h') or vim.uv.cwd()
 end
 
+-- Opening any real file records its git root so it shows up in the projects
+-- picker right away (snacks dedups the list internally, so dup lines are fine).
+local projects_file = vim.fn.stdpath 'data' .. '/projects.txt'
+vim.api.nvim_create_autocmd('BufReadPost', {
+  group = vim.api.nvim_create_augroup('register-project', { clear = true }),
+  callback = function(args)
+    if vim.bo[args.buf].buftype ~= '' then
+      return
+    end
+    local git = vim.fs.find('.git', { upward = true, path = vim.fn.expand '%:p:h' })[1]
+    if git then
+      local f = io.open(projects_file, 'a')
+      if f then
+        f:write(vim.fn.fnamemodify(git, ':h') .. '\n')
+        f:close()
+      end
+    end
+  end,
+})
+
 return {
   {
     'folke/snacks.nvim',
@@ -280,7 +300,8 @@ return {
       {
         '<leader>c',
         function()
-          Snacks.picker.projects()
+          local list = vim.fn.filereadable(projects_file) == 1 and vim.fn.readfile(projects_file) or {}
+          Snacks.picker.projects { projects = list }
         end,
         desc = 'Change Project',
       },
