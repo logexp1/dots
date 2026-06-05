@@ -36,7 +36,7 @@ Personal dotfiles managed via [GNU Stow](https://www.gnu.org/software/stow/), pl
 - `install.sh` — entry point; sources and runs each selected module's `run()` function
 - `install/common.sh` — shared helpers: `detect_os`, `log_step`, `log_warn`, `log_error`, `require_cmd`. Sourced by all modules. Sets `$OS` and `$BASEDIR`.
 - `install/<module>.sh` — each module defines a `run()` function. Modules can also be run standalone since they guard with `[[ "${BASH_SOURCE[0]}" == "$0" ]]`.
-- Current modules (in execution order): `packages firefox shell gpg git emacs systemd hyprpm wal stow doom nvim kitty`
+- Current modules (in execution order): `packages root shell git emacs hyprpm wal stow gpg doom yazi`. The `packages` module sets the global npm prefix to `~/.local` (via `ensure_npm_prefix`, before any `npm install -g`) so npm globals install without sudo.
 
 ### Package lists (`install/packages/`)
 

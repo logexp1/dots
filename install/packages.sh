@@ -4,6 +4,18 @@ source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/common.sh"
 
 PACKAGES_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")/packages"
 
+NPM_PREFIX="$HOME/.local"
+
+# Point npm's global prefix at ~/.local so `npm install -g` works without sudo.
+# Idempotent: no-op if npm is missing or already configured. Must run before any
+# `npm install -g`, hence it is invoked lazily from the npm package-manager case.
+ensure_npm_prefix() {
+    command -v npm &>/dev/null || return 0
+    [[ "$(npm config get prefix 2>/dev/null)" == "$NPM_PREFIX" ]] && return 0
+    log_step "packages" "Configuring npm global prefix -> $NPM_PREFIX"
+    npm config set prefix "$NPM_PREFIX"
+}
+
 default_pm() {
     case "$OS" in
         linux-debian) echo "apt" ;;
@@ -25,10 +37,7 @@ install_with() {
     case "$pm" in
         apt)
             sudo apt install -y "$pkg"
-            if [[ "$pkg" == "npm" ]]; then
-                log_step "packages" "Configuring npm prefix to ~/.local..."
-                npm config set prefix "$HOME/.local"
-            fi
+            [[ "$pkg" == "npm" ]] && ensure_npm_prefix
             if [[ "$pkg" == "rustup" ]]; then
                 log_step "packages" "Initializing rustup with stable toolchain..."
                 rustup default stable
@@ -62,9 +71,7 @@ install_with() {
             yay -S --noconfirm "$pkg"
             ;;
         npm)
-            if ! npm config get prefix 2>/dev/null | grep -q "$HOME"; then
-                npm config set prefix "$HOME/.local"
-            fi
+            ensure_npm_prefix
             npm install -g "$pkg"
             ;;
         pip)
@@ -153,6 +160,8 @@ run() {
         log_step "packages" "Installing $pkg with $pm..."
         install_with "$pm" "$pkg" "$extra"
     done < "$pkg_file"
+
+    ensure_npm_prefix
 
     log_step "packages" "Done."
 }
