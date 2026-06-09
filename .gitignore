@@ -18,3 +18,4 @@ browsing/.mozilla/firefox/
 browsing/.mozilla/native-messaging-hosts/tridactyl*
 terminal/.config/yazi/plugins
 wm/.config/hypr/configs/monitors.conf
+*pycache*

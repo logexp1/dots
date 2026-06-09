@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+# Smart clipboard paste for kitty.
+#
+# Problem: a Claude Code / editor running over ssh (e.g. the "remote" tab) can
+# only read the *remote* clipboard, so a local screenshot can never be pasted
+# with Ctrl+V — the remote process has no access to this machine's clipboard.
+#
+# Bound to a key (ctrl+a>ctrl+v), this looks at the focused window and:
+#   - ssh pane  -> streams the clipboard image to the remote host as a temp
+#                  file (over the multiplexed ssh connection) and types the
+#                  *remote* path into the prompt, so the remote app can read it.
+#   - local pane-> nothing: local apps read the clipboard image natively (Ctrl+V).
+#   - no image  -> falls back to a normal bracketed paste (text), like
+#                  Ctrl+Shift+V.
+#
+# The image travels out-of-band over ssh (so tmux on either side is irrelevant);
+# only a short path string is typed in-band into the prompt.
+
+import os
+import glob
+import json
+import stat
+import subprocess
+from collections import deque
+
+
+def run(cmd, **kw):
+    return subprocess.run(cmd, capture_output=True, **kw)
+
+
+def kitty_to():
+    """Return ['--to', 'unix:<socket>'] for talking to the kitty that launched
+    us. A --type=background launch does NOT inherit a usable KITTY_LISTEN_ON, so
+    we locate kitty's global socket (listen_on unix:/tmp/kitty-{kitty_pid}).
+    Our parent process is that kitty, so /tmp/kitty-<ppid> is the right one."""
+    lo = os.environ.get("KITTY_LISTEN_ON")
+    if lo and not lo.startswith("fd:"):
+        return ["--to", lo]
+    cand = "/tmp/kitty-%d" % os.getppid()
+    if _is_socket(cand):
+        return ["--to", "unix:" + cand]
+    socks = [p for p in glob.glob("/tmp/kitty-*") if _is_socket(p)]
+    if len(socks) == 1:
+        return ["--to", "unix:" + socks[0]]
+    return []
+
+
+def _is_socket(path):
+    try:
+        return stat.S_ISSOCK(os.stat(path).st_mode)
+    except OSError:
+        return False
+
+
+_TO = None  # resolved once in main()
+
+
+def kitty(*args):
+    """Run `kitty @ <args>` against the resolved control socket."""
+    return run(["kitty", "@"] + (_TO or []) + list(args))
+
+
+def focused_window():
+    """Return the kitty window dict that currently has keyboard focus."""
+    try:
+        data = json.loads(kitty("ls").stdout)
+    except ValueError:
+        return None
+    for osw in data:
+        if not osw.get("is_focused"):
+            continue
+        for tab in osw.get("tabs", []):
+            if not tab.get("is_focused"):
+                continue
+            for w in tab.get("windows", []):
+                if w.get("is_focused"):
+                    return w
+    return None
+
+
+def ssh_dest(argv):
+    """Given an ssh argv, return its destination (first non-option arg)."""
+    if not argv or os.path.basename(argv[0]) != "ssh":
+        return None
+    val_flags = {
+        "-p", "-i", "-o", "-l", "-F", "-W", "-L", "-R", "-D", "-J",
+        "-b", "-c", "-e", "-m", "-O", "-Q", "-S", "-w", "-B", "-I",
+    }
+    i = 1
+    while i < len(argv):
+        a = argv[i]
+        if a in val_flags:
+            i += 2
+        elif a.startswith("-"):
+            i += 1
+        else:
+            return a
+    return None
+
+
+def descendant_ssh(root_pid):
+    """BFS the process tree under root_pid for the shallowest ssh client argv."""
+    ps = run(["ps", "-e", "-o", "pid=,ppid=,args="]).stdout.decode("utf-8", "ignore")
+    children, args = {}, {}
+    for line in ps.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) < 3:
+            continue
+        pid, ppid, cmd = parts
+        children.setdefault(int(ppid), []).append(int(pid))
+        args[int(pid)] = cmd
+    queue = deque([root_pid])
+    while queue:
+        pid = queue.popleft()
+        toks = args.get(pid, "").split()
+        if toks and os.path.basename(toks[0]) == "ssh":
+            return toks
+        queue.extend(children.get(pid, []))
+    return None
+
+
+def remote_host(window):
+    """Return the ssh destination of the focused pane, or None if it's local.
+
+    Tries, in order: kitty's reported foreground processes, the shell's last
+    reported command (shell integration), and a legacy local-tmux socket."""
+    # 1) kitty foreground processes
+    for p in window.get("foreground_processes", []):
+        dest = ssh_dest(p.get("cmdline") or [])
+        if dest:
+            return dest
+
+    # 2) shell-integration: the command the shell reported running
+    dest = ssh_dest(window.get("last_reported_cmdline") or [])
+    if dest:
+        return dest
+
+    # 3) legacy: a local tmux running inside the window (e.g. z4h integrated)
+    cmd = window.get("cmdline") or []
+    if cmd and os.path.basename(cmd[0].lstrip("-")).startswith("tmux") and "-S" in cmd:
+        sock = cmd[cmd.index("-S") + 1]
+        out = run(["tmux", "-S", sock, "display-message", "-p",
+                   "#{pane_pid}\t#{pane_current_command}"]).stdout.decode().strip()
+        if out and "\t" in out:
+            pane_pid, pane_cmd = out.split("\t", 1)
+            if pane_cmd == "ssh":
+                return ssh_dest(descendant_ssh(int(pane_pid)) or [])
+    return None
+
+
+def clipboard_image_type():
+    """Return the first image/* MIME type on the clipboard, or None."""
+    types = run(["wl-paste", "--list-types"]).stdout.decode("utf-8", "ignore").split()
+    for t in types:
+        if t.startswith("image/"):
+            return t
+    return None
+
+
+def main():
+    global _TO
+    _TO = kitty_to()
+    w = focused_window()
+    if not w:
+        return
+    match = "id:%d" % w["id"]
+
+    itype = clipboard_image_type()
+    if not itype:
+        # No image: reuse kitty's own bracketed text paste into the window.
+        kitty("action", "--match", match, "paste_from_clipboard")
+        return
+
+    host = remote_host(w)
+    if not host:
+        # Local pane: apps (Claude Code, etc.) read the clipboard image
+        # natively via Ctrl+V, so there is nothing to bridge here.
+        return
+
+    img = run(["wl-paste", "--type", itype]).stdout
+    if not img:
+        return
+    ext = {"image/png": "png", "image/jpeg": "jpg", "image/gif": "gif",
+           "image/webp": "webp"}.get(itype, "png")
+
+    # Stream the image to a remote temp file over ssh; print its path back.
+    res = run(
+        ["ssh", host,
+         'f=$(mktemp /tmp/kitty-clip-XXXXXX.%s) && cat >"$f" && printf %%s "$f"' % ext],
+        input=img,
+    )
+    path = res.stdout.decode("utf-8", "ignore").strip()
+    if res.returncode != 0 or not path:
+        return
+
+    # Type the remote path into the prompt (trailing space, no newline).
+    kitty("send-text", "--match", match, path + " ")
+
+
+if __name__ == "__main__":
+    main()

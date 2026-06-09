@@ -16,8 +16,12 @@ zstyle ':z4h:' auto-update-days '28'
 # Keyboard type: 'mac' or 'pc'.
 zstyle ':z4h:bindkey' keyboard  'pc'
 
-# Start tmux if not already in tmux — skip when running inside kitty.
-if [[ -z "$KITTY_WINDOW_ID" ]]; then
+# Start tmux if not already in tmux — but inside kitty use kitty sessions, not
+# tmux. z4h's start-tmux default is 'integrated', so we must set 'no' explicitly
+# in the kitty case; merely not setting a command leaves it on the default.
+if [[ -n "$KITTY_WINDOW_ID" ]]; then
+    zstyle ':z4h:' start-tmux no
+else
     zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
 fi
 
