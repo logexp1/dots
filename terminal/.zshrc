@@ -101,6 +101,13 @@ autoload -Uz zmv
 function md() { [[ $# == 1 ]] && mkdir -p -- "$1" && cd -- "$1" }
 compdef _directories md
 
+# kitty's TERM (xterm-kitty) usually isn't installed on remote hosts, which
+# breaks the zsh line editor (doubled input) and prompt over ssh. Downgrade to a
+# universally-available value for ssh only. No effect inside tmux (TERM already
+# normalized there) or for non-kitty terminals.
+function ssh() { TERM=${TERM/xterm-kitty/xterm-256color} command ssh "$@" }
+compdef _ssh ssh 2>/dev/null
+
 # Define named directories: ~w <=> Windows home directory on WSL.
 [[ -z $z4h_win_home ]] || hash -d w=$z4h_win_home
 
