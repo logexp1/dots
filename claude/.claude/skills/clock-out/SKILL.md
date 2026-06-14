@@ -19,8 +19,8 @@ description: End the workday. Write a session retro, finalize today's daily note
    - **Next Session Context** — 내일 아침 이 블록만 읽으면 복원되도록: 착수 명령 / 필수 참조 파일 / 맥락·주의.
 5. **검증 (선택)** — 코드·산출물 품질 확인이 필요하면 **자기검증하지 말고** OMC `code-reviewer` 또는 `verifier` 에이전트에 위임한다. (생성자 ≠ 평가자)
 6. **도메인 지식 승격 (선택)** — 오늘 노트에서 오래 갈 도메인 사실이 보이면 `projects/<system>.md` 에 반영한다.
-7. **동기화 (pull → commit → push)** — 다른 머신 변경을 먼저 합치고 사내 journals(origin)에 반영해 모든 머신을 일치시킨다. (멀티머신 동기화의 핵심)
-   - `cd ~/vaults/journals && git pull --rebase` — 충돌 나면 멈추고 사용자에게 알린다.
-   - `git add -A && git commit -m "journal: <TODAY>"` — 커밋할 변경이 없으면 생략.
+7. **동기화 (commit → pull → push)** — clock-out 시점엔 방금 쓴 회고·데일리노트가 항상 uncommitted이므로 **commit이 먼저**여야 한다 (unstaged 상태면 `git pull --rebase`가 거부됨). 커밋 후 다른 머신 변경을 합치고 origin에 push해 모든 머신을 일치시킨다.
+   - `cd ~/vaults/journals && git add -A && git commit -m "journal: <TODAY>"` — 변경 없으면 생략.
+   - `git pull --rebase` — 충돌 나면 멈추고 사용자에게 알린다.
    - `git push` — 실패하면 사용자에게 알린다 (remote가 origin에 push 권한·credential 있어야 함).
 8. **요약 보고** — 무엇을 회고/마감/커밋했는지 사용자에게 3줄로.
