@@ -114,3 +114,6 @@ md.obsidian.Obsidian flatpak
 
 # markdown
 graphviz
+# mdmath.nvim inline LaTeX rendering: rsvg-convert (librsvg2-tools) + magick (ImageMagick)
+librsvg2-tools
+ImageMagick
