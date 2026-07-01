@@ -23,7 +23,7 @@ animation = "fromTop"
 margin = 50
 lazy = true
 match_by = "class"
-size = "75% 80%"
+size = "95% 93%"
 
 [monitors]
 unknown = "wlrlui"
