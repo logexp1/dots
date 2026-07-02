@@ -108,8 +108,19 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.keymap.set('v', '<CR>', '<Plug>(iwe-lsp-link)', opts)
     vim.keymap.set('i', '/d', '<Plug>(iwe-insert-date)', opts)
     vim.keymap.set('i', '/w', '<Plug>(iwe-insert-week)', opts)
-    vim.keymap.set('n', '<C-n>', '<Plug>(iwe-next-link)', opts)
-    vim.keymap.set('n', '<C-p>', '<Plug>(iwe-prev-link)', opts)
+    vim.keymap.set('n', '<C-n>', '<Plug>(iwe-link-next)', opts)
+    vim.keymap.set('n', '<C-p>', '<Plug>(iwe-link-prev)', opts)
+
+    -- iwe picker keybindings. iwe.nvim only registers these inside the
+    -- enable_markdown_mappings gate (which we keep off to preserve our own
+    -- <CR>/- mappings), so bind the always-available <Plug> targets here.
+    vim.keymap.set('n', 'gs', '<Plug>(iwe-picker-paths)', opts) -- node-find (org-roam-node-find equiv)
+    vim.keymap.set('n', 'gf', '<Plug>(iwe-picker-find-files)', opts) -- find by filename
+    vim.keymap.set('n', 'ga', '<Plug>(iwe-picker-roots)', opts) -- namespace roots
+    vim.keymap.set('n', 'g/', '<Plug>(iwe-picker-grep)', opts) -- live grep
+    vim.keymap.set('n', 'gb', '<Plug>(iwe-picker-blockreferences)', opts) -- block references
+    vim.keymap.set('n', 'gR', '<Plug>(iwe-picker-backlinks)', opts) -- backlinks
+    vim.keymap.set('n', 'go', '<Plug>(iwe-picker-headers)', opts) -- document headers
     -- "-" 는 의도적으로 제외 → oil 유지
   end,
 })

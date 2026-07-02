@@ -10,7 +10,11 @@ return {
     require('iwe').setup {
       lsp = {
         cmd = { 'iwes' },
-        auto_format_on_save = true,
+        -- OFF: iwe's LSP formatter canonicalizes markdown and mangles LaTeX
+        -- ($..$ → treats _ as emphasis, strips \; \{ escapes, ignores
+        -- prettier-ignore/.prettierrc). Markdown formatting goes through
+        -- conform+prettier instead (see plugins/formatting.lua).
+        auto_format_on_save = false,
         enable_inlay_hints = true,
         debounce_text_changes = 500,
       },

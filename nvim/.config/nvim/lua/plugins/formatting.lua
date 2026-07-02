@@ -22,7 +22,10 @@ return {
       lua = { 'stylua' },
       python = { 'ruff_organize_imports', 'ruff_format' },
       javascript = { 'prettierd', 'prettier', stop_after_first = true },
-      markdown = { 'prettier' },
+      -- lsp_format='never': if prettier is ever missing, do NOT fall back to
+      -- LSP formatting (iwe) for markdown — that mangles LaTeX. Better to skip
+      -- formatting than corrupt math.
+      markdown = { 'prettier', lsp_format = 'never' },
     },
     -- Set default options
     default_format_opts = {
