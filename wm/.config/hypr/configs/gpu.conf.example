@@ -1,22 +1,28 @@
 # Template for configs/gpu.conf, which is per-machine and gitignored.
-# Copy this file to gpu.conf and keep only the profile matching the machine.
 #
-# Which profile applies is decided by ONE question: which GPU are the displays
+# Copy this file to gpu.conf, then UNCOMMENT EXACTLY ONE profile. Everything
+# here is commented on purpose: a bare copy is inert, so a fresh machine gets
+# no GPU env rather than the wrong one.
+#
+# Which profile applies comes down to one question -- which GPU are the displays
 # wired to? Check with:
 #   for c in /sys/class/drm/card*-*/status; do printf '%-24s %s\n' "${c%/status}" "$(cat $c)"; done
 #   hyprctl monitors | grep -E 'Monitor|scale'
+# The card that owns the *connected* connectors is the one that scans out.
 
 # --- Profile A: displays wired to an AMD/Intel iGPU (muxless laptop) ---------
-# Clients must render on the iGPU that scans out; sending them to the dGPU adds
-# a cross-GPU copy and breaks after a dGPU power/VRAM cycle. dGPU via prime-run.
-env = LIBVA_DRIVER_NAME, radeonsi        # Intel iGPU: iHD
-env = WLR_NO_HARDWARE_CURSORS, 1
+# Clients must render on the iGPU that scans out. Sending them to the dGPU adds
+# a cross-GPU dmabuf import per frame, which can leave windows rendering as
+# garbled shrunken text after the dGPU cycles its VRAM. dGPU via prime-run.
+# env = LIBVA_DRIVER_NAME, radeonsi        # Intel iGPU: iHD
+# env = WLR_NO_HARDWARE_CURSORS, 1
 
 # --- Profile B: displays wired to the NVIDIA GPU (typical desktop) ----------
 # Hyprland itself runs on NVIDIA, so the NVIDIA GBM/GLX backends are the
-# recommended setup and there is no cross-GPU path at all. prime-run is
+# recommended setup and there is no cross-GPU path at all; prime-run is
 # pointless here. LIBVA_DRIVER_NAME=nvidia needs the nvidia-vaapi-driver
-# package, and MOZ_DISABLE_RDD_SANDBOX=1 for Firefox to reach it.
+# package installed, plus MOZ_DISABLE_RDD_SANDBOX=1 for Firefox to reach it --
+# without that package libva fails to init and video falls back to software.
 # env = GBM_BACKEND, nvidia-drm
 # env = __GLX_VENDOR_LIBRARY_NAME, nvidia
 # env = LIBVA_DRIVER_NAME, nvidia
