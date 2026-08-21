@@ -1,0 +1,10 @@
+#!/bin/bash
+# Run a command on the NVIDIA dGPU (PRIME render offload).
+# Needed on muxless laptops where the displays are wired to the iGPU, so the
+# session renders on the iGPU by default. Fedora does not ship prime-run.
+#   usage: prime-run <command> [args...]     e.g. prime-run eden
+
+exec env __NV_PRIME_RENDER_OFFLOAD=1 \
+         __GLX_VENDOR_LIBRARY_NAME=nvidia \
+         __VK_LAYER_NV_optimus=NVIDIA_only \
+         "$@"
