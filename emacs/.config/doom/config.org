@@ -2039,6 +2039,20 @@ _k_ : previous
                         :image-converter
                         ("convert -density %D -trim -antialias %f -quality 100 %O"))))
 
+  ;; The scale handed to dvisvgm is image-size-adjust * :scale * (display-dpi / 140),
+  ;; and org--get-display-dpi divides the pixel height by the compositor scale factor.
+  ;; So the same config renders differently per machine: 70 dpi on the 4K desktop at
+  ;; scale 2 (half size), higher on the laptop. Cancel the dpi term so previews come
+  ;; out the same everywhere; 1.3 is the taste knob. Needs a frame, hence the hook.
+  (defun js/org-set-latex-preview-scale ()
+    (when (display-graphic-p)
+      (plist-put org-format-latex-options
+                 :scale (* 1.3 (/ 140.0 (org--get-display-dpi))))))
+  ;; window-setup-hook covers a plain GUI start, the server hook covers emacsclient
+  ;; frames; both run after the setq! below, which would otherwise reset :scale.
+  (add-hook 'window-setup-hook #'js/org-set-latex-preview-scale)
+  (add-hook 'server-after-make-frame-hook #'js/org-set-latex-preview-scale)
+
   (setq! org-format-latex-options '(:foreground default :background "Transparent" :scale 1.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
 			            ("begin" "$1" "$" "$$" "\\(" "\\["))
          org-latex-src-block-backend 'minted
