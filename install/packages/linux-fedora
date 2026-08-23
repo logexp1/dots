@@ -30,6 +30,13 @@ glib2-devel
 poppler-glib-devel
 poppler-devel
 libpng-devel
+# image support: without these, configure silently drops --with-rsvg etc.
+# and Emacs ends up with image-types (png xpm xbm pbm) -> no org latex preview
+librsvg2-devel
+libjpeg-turbo-devel
+giflib-devel
+libtiff-devel
+libwebp-devel
 zlib-devel
 pkgconf
 automake
@@ -117,3 +124,21 @@ graphviz
 # mdmath.nvim inline LaTeX rendering: rsvg-convert (librsvg2-tools) + magick (ImageMagick)
 librsvg2-tools
 ImageMagick
+
+# org-mode inline LaTeX preview (org-latex-preview: xelatex > xdv > dvisvgm > svg)
+texlive-scheme-basic
+texlive-xetex
+texlive-dvisvgm
+texlive-amsfonts
+texlive-graphics
+texlive-ulem
+texlive-collection-fontsrecommended
+# .sty files pulled in by org-latex-packages-alist in doom config.org
+texlive-cancel
+texlive-minted
+texlive-fvextra
+texlive-upquote
+texlive-framed
+texlive-lineno
+# minted shells out to pygmentize
+python3-pygments
