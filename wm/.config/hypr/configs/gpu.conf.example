@@ -18,14 +18,19 @@
 # env = WLR_NO_HARDWARE_CURSORS, 1
 
 # --- Profile B: displays wired to the NVIDIA GPU (typical desktop) ----------
-# Hyprland itself runs on NVIDIA, so the NVIDIA GBM/GLX backends are the
-# recommended setup and there is no cross-GPU path at all; prime-run is
-# pointless here. LIBVA_DRIVER_NAME=nvidia needs the nvidia-vaapi-driver
-# package installed, plus MOZ_DISABLE_RDD_SANDBOX=1 for Firefox to reach it --
-# without that package libva fails to init and video falls back to software.
+# Hyprland itself runs on NVIDIA, so these are the backends it recommends, and
+# there is no cross-GPU path at all -- prime-run is pointless here.
 # env = GBM_BACKEND, nvidia-drm
 # env = __GLX_VENDOR_LIBRARY_NAME, nvidia
+# env = WLR_NO_HARDWARE_CURSORS, 1
+
+# Do NOT enable the three below unless nvidia-vaapi-driver is actually present:
+# it is not in Fedora/RPM Fusion any more (dnf repoquery finds nothing), so it
+# has to be built from source or pulled from a COPR. Setting LIBVA_DRIVER_NAME
+# without it makes libva fail outright (va_openDriver returns -1) instead of
+# quietly falling back, and MOZ_DISABLE_RDD_SANDBOX only weakens Firefox's
+# sandbox with nothing to gain. For video on NVIDIA, mpv/VLC can use NVDEC
+# directly (mpv --hwdec=nvdec), which needs none of this.
 # env = LIBVA_DRIVER_NAME, nvidia
 # env = NVD_BACKEND, direct
 # env = MOZ_DISABLE_RDD_SANDBOX, 1
-# env = WLR_NO_HARDWARE_CURSORS, 1
