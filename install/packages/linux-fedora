@@ -108,6 +108,7 @@ prettier npm
 
 # media
 zathura
+zathura-pdf-mupdf
 imv
 chafa
 satty 
