@@ -2707,12 +2707,15 @@ Git gutter:
   (interactive)
   (let ((opener (cond ((executable-find "rifle")
                        "rifle")
+                      ((executable-find "xdg-open")
+                       "xdg-open")
                       ((executable-find "open")
                        "open"))))
-    (when opener
-      (dolist (file (dired-get-marked-files))
-        (start-process "js/dired-open" nil
-                       opener (file-truename file))))))
+    (unless opener
+      (user-error "No external opener found (rifle, xdg-open or open)"))
+    (dolist (file (dired-get-marked-files))
+      (start-process "js/dired-open" nil
+                     opener (file-truename file)))))
 
 ;; to use dragon-and-drop
 (defun js/dired-dragon-drop ()
