@@ -2593,7 +2593,17 @@ Install docset with =dash-docs-install-docset=, if not found, try =dash-docs-ins
         :i "<up>" #'jupyter-repl-history-previous
         :i "<down>" #'jupyter-repl-history-next)
   (map! :map jupyter-repl-interaction-mode-map
-        "C-c C-c" #'org-edit-src-exit))
+        "C-c C-c" #'org-edit-src-exit)
+  ;; Org 9.8's `org-element-drawer-interpreter' does (make-string (:pre-blank
+  ;; drawer) ?\n), but emacs-jupyter builds its RESULTS drawer without that
+  ;; property.  The (wrong-type-argument wholenump nil) it raises is swallowed
+  ;; by the message publisher, so a block that errors in the kernel reports
+  ;; only "Error in ZMQ subprocess filter" instead of the Python traceback.
+  (defadvice! +jupyter-org-drawer-pre-blank-a (drawer)
+    :filter-return #'jupyter-org-results-drawer
+    (if (eq (org-element-type drawer) 'drawer)
+        (org-element-put-property drawer :pre-blank 0)
+      drawer)))
 #+end_src
 
 
