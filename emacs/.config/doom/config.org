@@ -2566,6 +2566,21 @@ Install docset with =dash-docs-install-docset=, if not found, try =dash-docs-ins
 :ID:       89e88884-0bb9-4fc6-baaa-660dddcdbda3
 :END:
 #+begin_src emacs-lisp
+;; Emacs 30.2's treesit.c serialises the `:match' and `:pred' query predicates
+;; as "#match"/"#pred", but libtree-sitter >= 0.25 (0.26.8 here) requires a
+;; predicate name to end in ? or !.  python-ts-mode's keyword, builtin and type
+;; font-lock queries therefore fail to compile, and inside an Org src block
+;; `org-src-font-lock-fontify-block' reports each failure as a "Native code
+;; fontification error" -- once per keystroke.  Fixed upstream by b01435306a3
+;; (bug#79687); until this Emacs is rebuilt, fontify src blocks with the
+;; non-tree-sitter major modes, which have no such queries.
+(after! org-src
+  (defadvice! +org-src-fontify-without-treesit-a (fn &rest args)
+    :around #'org-src-font-lock-fontify-block
+    (let ((major-mode-remap-defaults nil)
+          (major-mode-remap-alist nil))
+      (apply fn args))))
+
 (use-package! ob-jupyter
   :init
   (defun display-ansi-colors ()
