@@ -2603,7 +2603,29 @@ Install docset with =dash-docs-install-docset=, if not found, try =dash-docs-ins
     :filter-return #'jupyter-org-results-drawer
     (if (eq (org-element-type drawer) 'drawer)
         (org-element-put-property drawer :pre-blank 0)
-      drawer)))
+      drawer))
+  ;; company (idle 0.2s) runs `jupyter-org-completion-at-point' on nearly every
+  ;; keystroke inside a jupyter src block, which sends a complete_request to the
+  ;; kernel.  When a client's ZMQ channel is in a bad state that send reaches a
+  ;; nil socket in the ioloop subprocess -- (wrong-type-argument user-ptrp nil)
+  ;; -- and the echo area is spammed once per keystroke.  Completion is not
+  ;; needed to run a block, so keep the kernel out of the typing path.
+  (add-hook! 'jupyter-org-interaction-mode-hook
+    (defun +jupyter-org-drop-kernel-capf-h ()
+      (remove-hook 'completion-at-point-functions
+                   'jupyter-org-completion-at-point t)))
+  ;; `zmq--subprocess-filter' re-signals subprocess errors from inside a process
+  ;; filter, which Emacs reports in the echo area.  Log them instead; errors
+  ;; raised by the kernel itself arrive as Jupyter messages and still get
+  ;; inserted into the Org buffer.
+  (with-eval-after-load 'zmq
+    (defadvice! +jupyter-quiet-zmq-subprocess-error-a (fn process output)
+      :around #'zmq--subprocess-filter
+      (condition-case err
+          (funcall fn process output)
+        (zmq-subprocess-error
+         (let ((inhibit-message t))
+           (message "ZMQ subprocess error (silenced): %S" err)))))))
 #+end_src
 
 
