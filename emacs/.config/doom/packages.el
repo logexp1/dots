@@ -31,6 +31,8 @@
   :recipe (:host github :repo "jethrokuan/mathpix.el"))
 (package! pyvenv)
 (package! ob-async)
+(package! ob-mermaid)
+(package! mermaid-mode)
 ;; (package! jupyter
 ;;   :recipe (:host github :repo "nnicandro/emacs-jupyter"))
 (unpin! jupyter)

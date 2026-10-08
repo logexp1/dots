@@ -892,7 +892,7 @@ I can't use org mode headline search if I enable this package.
 #+begin_src emacs-lisp
 (after! org
   (setq! org-structure-template-alist
-        '(("p" . "src jupyter-python")))
+         '(("p" . "src jupyter-python")))
   (add-to-list 'org-structure-template-alist
                '("y" . "src yaml"))
   (add-to-list 'org-structure-template-alist
@@ -905,6 +905,8 @@ I can't use org mode headline search if I enable this package.
                '("l" . "src latex"))
   (add-to-list 'org-structure-template-alist
                '("e" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist
+               '("m" . "src mermaid"))
   (add-to-list 'org-structure-template-alist
                '("q" . "src sql"))
   (add-to-list 'org-structure-template-alist
@@ -2164,6 +2166,28 @@ _k_ : previous
 :END:
 #+begin_src emacs-lisp
 (setq! org-babel-uppercase-example-markers t)
+#+end_src
+
+*** ob-mermaid
+Needs ~mmdc~ (=@mermaid-js/mermaid-cli=, installed via npm). Blocks need a ~:file~ header.
+#+begin_src emacs-lisp
+(use-package! ob-mermaid
+  :defer t
+  :config
+  (setq! ob-mermaid-cli-path (executable-find "mmdc"))
+  ;; mmdc's puppeteer wants its own chrome-headless-shell download; reuse system chrome instead
+  (when-let ((chrome (executable-find "google-chrome-stable")))
+    (setenv "PUPPETEER_EXECUTABLE_PATH" chrome))
+  ;; mmdc fails on a missing output dir (jupyter creates it), e.g. :file tangle/foo.png
+  (defadvice! +ob-mermaid-mkdir-a (_body params)
+    :before #'org-babel-execute:mermaid
+    (when-let ((file (cdr (assq :file params))))
+      (make-directory (file-name-directory (expand-file-name file)) t))))
+
+(use-package! mermaid-mode
+  :defer t
+  :config
+  (setq! mermaid-mmdc-location (executable-find "mmdc")))
 #+end_src
 
 ** org-re-reveal
