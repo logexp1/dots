@@ -141,7 +141,7 @@ run() {
 
     # Set trust to ultimate (idempotent)
     log_step "gpg" "Setting key trust to ultimate..."
-    echo "${FINGERPRINT}:5:" | gpg --import-ownertrust
+    echo "${FINGERPRINT}:6:" | gpg --import-ownertrust
     gpg --check-trustdb
 
 
