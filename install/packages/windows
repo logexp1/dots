@@ -1,0 +1,7 @@
+# winget package IDs, one per line (installed by install/windows/install.ps1)
+GnuPG.Gpg4win
+Git.Git
+# pass-winmenu v1.14 targets .NET 6; it crashes when rolled forward to .NET 10
+Microsoft.DotNet.DesktopRuntime.6
+# MSVCP140.dll / VCRUNTIME140.dll for emulators and game ports
+Microsoft.VCRedist.2015+.x64

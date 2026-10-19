@@ -67,6 +67,10 @@ Every top-level directory except `install/` is a stow package symlinked into `~/
 
 Deprecated/archived modules live in `install/archives/` and are not referenced by `install.sh`.
 
+### Windows bootstrap (`install/windows/install.ps1`)
+
+PowerShell counterpart of `install.sh` with modules `packages gpg passmenu` (or `all`): winget IDs from `install/packages/windows`, gpg-agent cache config + secret key import (from `%OneDrive%\privkey.asc`, like `install/gpg.sh`) + password-store clone, and pass-winmenu with a startup shortcut. Run with `powershell -ExecutionPolicy Bypass -File install\windows\install.ps1 all`.
+
 ### Hyprland config (`wm/`)
 
 `wm/.config/hypr/hyprland.conf` sources split config files from `wm/.config/hypr/configs/`: `envs.conf`, `settings.conf`, `monitors.conf`, `keybindings.conf`, `windowrules.conf`, `startups.conf`, `hyprfocus.conf`. Edit the relevant sub-file rather than the main conf.
