@@ -65,6 +65,46 @@
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 #+end_src
 
+** sshfs mounts
+=~/remote= is an sshfs mount, so =file-remote-p= is nil there and nothing
+applies its remote-file shortcuts.  A single =git status= in a repo there
+takes over a minute, and sshfs pushes every request through one connection,
+so any git call (vc, diff-hl, dirvish's per-file vc-state) stalls all other
+file access until it finishes.  Turn off vc, LSP and auto-save under the mount.
+
+#+begin_src emacs-lisp
+(defconst js/sshfs-dir-regexp
+  (concat "\\`" (regexp-opt (list (expand-file-name "~/remote/") "~/remote/")))
+  "Paths on the sshfs mount, both expanded and abbreviated.")
+
+(defun js/sshfs-path-p (path)
+  (and path (string-match-p js/sshfs-dir-regexp path)))
+
+;; vc-backend and vc-find-root both stop here, which also covers
+;; diff-hl (gutter and dired) and the modeline branch.
+(setq vc-ignore-dir-regexp
+      (concat "\\(?:" vc-ignore-dir-regexp "\\)\\|" js/sshfs-dir-regexp))
+
+(setq auto-save-visited-predicate
+      (lambda () (not (js/sshfs-path-p buffer-file-name))))
+
+(advice-add #'lsp! :before-until
+            (lambda () (js/sshfs-path-p buffer-file-name)))
+
+;; dirvish fetches vc data in a `emacs -Q' child that doesn't see the
+;; settings above; a preset non-symbol :vc-backend makes it skip vc.
+(after! dirvish
+  (advice-add #'dirvish--dir-data-async :around
+              (lambda (fn dir buffer &rest args)
+                (if (not (js/sshfs-path-p dir))
+                    (apply fn dir buffer args)
+                  ;; `dirvish-prop' is a macro not yet defined when this
+                  ;; file is read, so set the buffer-local alist directly.
+                  (with-current-buffer buffer
+                    (setf (alist-get :vc-backend dirvish--props) 0)
+                    (apply fn dir buffer args))))))
+#+end_src
+
 
 * Key Bindings
 ** kbd mode
