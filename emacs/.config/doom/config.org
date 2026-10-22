@@ -866,6 +866,23 @@ I can't use org mode headline search if I enable this package.
   (add-hook! 'text-mode-hook #'adaptive-wrap-prefix-mode))
 #+end_src
 
+** markdown rendering
+Show images inline when a markdown file opens, and align tables by pixel
+with valign so tables with Korean text don't drift.
+=C-c C-x C-i= toggles images, =C-c C-x C-m= hides markup.
+#+begin_src emacs-lisp
+(after! markdown-mode
+  (setq markdown-display-remote-images t
+        markdown-max-image-size '(800 . 600)
+        markdown-fontify-code-blocks-natively t)
+  (add-hook 'markdown-mode-hook #'markdown-display-inline-images))
+
+(use-package! valign
+  :hook (markdown-mode . valign-mode)
+  :config
+  (setq valign-fancy-bar t))
+#+end_src
+
 * Org
 ** configurations
 *** default variables

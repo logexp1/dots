@@ -90,3 +90,5 @@
   :recipe (:host github :repo "emacsattic/tree-sitter-indent"))
 (package! eca
   :recipe (:host github :repo "editor-code-assistant/eca-emacs" :files ("*.el")))
+
+(package! valign)
