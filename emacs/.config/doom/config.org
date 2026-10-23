@@ -875,7 +875,14 @@ with valign so tables with Korean text don't drift.
   (setq markdown-display-remote-images t
         markdown-max-image-size '(800 . 600)
         markdown-fontify-code-blocks-natively t)
-  (add-hook 'markdown-mode-hook #'markdown-display-inline-images))
+  (add-hook 'markdown-mode-hook #'markdown-display-inline-images)
+  ;; auto-revert keeps the mode and skips its hooks, so images added to
+  ;; the file elsewhere never show; redraw them where they're turned on.
+  (defun js/markdown-refresh-inline-images-h ()
+    (when (and (derived-mode-p 'markdown-mode) markdown-inline-image-overlays)
+      (markdown-remove-inline-images)
+      (markdown-display-inline-images)))
+  (add-hook 'after-revert-hook #'js/markdown-refresh-inline-images-h))
 
 (use-package! valign
   :hook (markdown-mode . valign-mode)
