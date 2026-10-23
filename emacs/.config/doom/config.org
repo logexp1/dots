@@ -385,7 +385,8 @@ file access until it finishes.  Turn off vc, LSP and auto-save under the mount.
 (map! :leader
       :desc "outline" "i" #'consult-outline
       (:prefix ("f" . "file")
-       :desc "open file" "f" #'find-file)
+       :desc "open file" "f" #'find-file
+       :desc "recent files" "r" #'consult-recent-file)
       (:prefix ("q" . "quit")
        :desc "kill emacs" "k" #'kill-emacs
        :desc "quit emacs" "q" #'save-buffers-kill-terminal))
