@@ -1,4 +1,4 @@
-personal_ws-1.1 en 146
+personal_ws-1.1 en 147
 Confounder
 FFmpeg
 Mahalanobis
@@ -95,6 +95,7 @@ normalizer
 nullspace
 numpy
 orthant
+orthogonalization
 orthonormal
 overfitting
 oversample
