@@ -65,7 +65,8 @@ automatically based on the detected OS.
 install/packages/
 ├── linux-debian    # apt
 ├── linux-arch      # pacman
-└── macos           # brew
+├── macos           # brew
+└── windows         # winget IDs, used by install/windows/install.ps1
 #+end_example
 
 Each line is a package name, with an optional second column for a non-default
@@ -78,3 +79,46 @@ some-aur-package yay
 tree-sitter-cli npm
 #+end_src
 
+* Windows
+
+Windows has no stow; =install/windows/install.ps1= installs packages and
+copies the few configs used there instead.
+
+** Setup
+
+Run in PowerShell (not cmd.exe):
+
+#+begin_src powershell
+# Git first, to clone this repo (open a new terminal afterwards so it is on PATH)
+winget install --id Git.Git --exact
+git clone https://github.com/logexp1/dots.git $HOME\dots
+cd $HOME\dots
+
+# Once per user: allow local scripts, so no -ExecutionPolicy Bypass is needed
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+# Show available modules / run all / run specific ones
+.\install\windows\install.ps1
+.\install\windows\install.ps1 all
+.\install\windows\install.ps1 gpg passmenu
+#+end_src
+
+** Modules
+
+| Module      | Description                                                                   |
+|-------------+-------------------------------------------------------------------------------|
+| =packages=  | Install winget packages from =install/packages/windows=                       |
+| =gpg=       | gpg-agent cache config, import =%OneDrive%\privkey.asc=, clone password store |
+| =passmenu=  | Install pass-winmenu (Ctrl+Alt+P) with a startup shortcut                     |
+| =tridactyl= | Install the Tridactyl native messenger, copy the rc to =~\.tridactylrc=       |
+
+The Tridactyl extension itself arrives through Firefox account sync. The rc
+is a copy, not a link, so re-run =install.ps1 tridactyl= after editing
+=browsing/.tridactylrc=.
+
+** Manual steps
+
+- PowerToys Keyboard Manager (installed by =packages=): remap
+  =Ctrl (Left)= → =Alt (Left)=, =Alt (Left)= → =Ctrl (Left)= and
+  =Caps Lock= → =Win (Left)=, matching the Hyprland =kb_options=. Pick the
+  =Left= keys explicitly so the right-hand 한/영 and 한자 keys stay as they are.
