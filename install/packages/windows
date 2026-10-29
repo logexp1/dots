@@ -5,3 +5,5 @@ Git.Git
 Microsoft.DotNet.DesktopRuntime.6
 # MSVCP140.dll / VCRUNTIME140.dll for emulators and game ports
 Microsoft.VCRedist.2015+.x64
+# Keyboard Manager: swap left Ctrl/Alt and CapsLock -> Win, like kb_options in hypr settings.conf
+Microsoft.PowerToys

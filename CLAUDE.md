@@ -69,7 +69,7 @@ Deprecated/archived modules live in `install/archives/` and are not referenced b
 
 ### Windows bootstrap (`install/windows/install.ps1`)
 
-PowerShell counterpart of `install.sh` with modules `packages gpg passmenu` (or `all`): winget IDs from `install/packages/windows`, gpg-agent cache config + secret key import (from `%OneDrive%\privkey.asc`, like `install/gpg.sh`) + password-store clone, and pass-winmenu with a startup shortcut. Run with `powershell -ExecutionPolicy Bypass -File install\windows\install.ps1 all`.
+PowerShell counterpart of `install.sh` with modules `packages gpg passmenu tridactyl` (or `all`): winget IDs from `install/packages/windows`, gpg-agent cache config + secret key import (from `%OneDrive%\privkey.asc`, like `install/gpg.sh`) + password-store clone, pass-winmenu with a startup shortcut, and the Tridactyl native messenger + an LF copy of `browsing/.tridactylrc` at `%USERPROFILE%\.tridactylrc`. Run with `powershell -ExecutionPolicy Bypass -File install\windows\install.ps1 all`.
 
 ### Hyprland config (`wm/`)
 

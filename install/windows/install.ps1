@@ -1,4 +1,4 @@
-# Windows counterpart of install.sh: winget packages, GnuPG + password store, pass-winmenu.
+# Windows counterpart of install.sh: winget packages, GnuPG + password store, pass-winmenu, tridactyl.
 # Usage (Windows PowerShell 5.1 or pwsh):
 #   powershell -ExecutionPolicy Bypass -File install\windows\install.ps1 all
 #   powershell -ExecutionPolicy Bypass -File install\windows\install.ps1 gpg passmenu
@@ -7,7 +7,7 @@ param([string[]]$Modules)
 $ErrorActionPreference = 'Stop'
 
 $BaseDir = Split-Path (Split-Path $PSScriptRoot)
-$AllModules = @('packages', 'gpg', 'passmenu')
+$AllModules = @('packages', 'gpg', 'passmenu', 'tridactyl')
 
 $Fingerprint = 'D56378D8CBE9852BACAE1E37360913AC5912FEB8'
 $PassRepo = 'https://github.com/logexp1/password-store.git'
@@ -139,6 +139,27 @@ function Run-PassMenu {
     Log-Step 'passmenu' 'Done. Press Ctrl+Alt+P to search the password store.'
 }
 
+function Run-Tridactyl {
+    if (Test-Path 'HKCU:\Software\Mozilla\NativeMessagingHosts\tridactyl') {
+        Log-Step 'tridactyl' 'Native messenger already registered, skipping install.'
+    } else {
+        # Same installer :installnative copies, minus its cmd.exe-only %TEMP% syntax.
+        Log-Step 'tridactyl' 'Installing the native messenger...'
+        $installer = Join-Path $env:TEMP 'tridactyl_installnative.ps1'
+        Invoke-WebRequest 'https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1' -OutFile $installer -UseBasicParsing
+        & $installer
+        Remove-Item $installer
+    }
+
+    # Copied, not linked: symlinks need admin or developer mode. Re-run after editing the rc.
+    # Tridactyl keeps a trailing \r on CRLF lines (e.g. `colourscheme dark\r` fails), so write LF.
+    $rc = Join-Path $HOME '.tridactylrc'
+    Log-Step 'tridactyl' "Writing $rc..."
+    $text = (Get-Content -Raw (Join-Path $BaseDir 'browsing\.tridactylrc')) -replace "`r`n", "`n"
+    [IO.File]::WriteAllText($rc, $text)
+    Log-Step 'tridactyl' 'Done. Restart Firefox or run :source to load the rc.'
+}
+
 if (-not $Modules) {
     Write-Host "Usage: install.ps1 <module> [module...] | all"
     Write-Host ''
@@ -156,5 +177,6 @@ foreach ($m in $Modules) {
         'packages' { Run-Packages }
         'gpg' { Run-Gpg }
         'passmenu' { Run-PassMenu }
+        'tridactyl' { Run-Tridactyl }
     }
 }
