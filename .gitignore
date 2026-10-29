@@ -9,6 +9,7 @@ common/.gnupg/random_seed
 common/.gnupg/*db*
 common/.gnupg/reader_*.status
 common/.gnupg/*.kbx*
+common/.gnupg/sshcontrol
 emacs/.config/doom/config.el
 common/.config/onedrive/*
 !common/.config/onedrive/config
