@@ -34,17 +34,19 @@ symlinked into =~/=.
 
 * Modules
 
-| Module       | Description                                     |
-|--------------+-------------------------------------------------|
-| =packages=   | Install system packages from OS-specific list   |
-| =gpg=        | Import GPG keys and initialize password store   |
-| =git=        | Configure global git settings                   |
-| =emacs=      | Build Emacs from source                         |
-| =doom=       | Install and configure Doom Emacs                |
-| =systemd=    | Enable user systemd services (Linux only)       |
-| =browserpass= | Build and install browserpass-native            |
-| =hyprpm=     | Set up Hyprland plugins                         |
-| =stow=       | Symlink dotfiles into =~/= via GNU Stow        |
+| Module     | Description                                        |
+|------------+----------------------------------------------------|
+| =packages= | Install system packages from the OS-specific list  |
+| =root=     | Copy =install/system/= files into =/= (needs sudo) |
+| =shell=    | Set zsh as the default shell                       |
+| =git=      | Configure global git settings                      |
+| =emacs=    | Build Emacs from source                            |
+| =hyprpm=   | Set up Hyprland plugins                            |
+| =wal=      | Link wallpapers and generate a pywal color scheme  |
+| =stow=     | Symlink dotfiles into =~/= via GNU Stow            |
+| =gpg=      | Import GPG keys and initialize password store      |
+| =doom=     | Install and configure Doom Emacs                   |
+| =yazi=     | Install yazi plugins and set xdg mime defaults     |
 
 When running =./install.sh all=, modules execute in the order listed above.
 
@@ -65,7 +67,7 @@ automatically based on the detected OS.
 install/packages/
 ├── linux-debian    # apt
 ├── linux-arch      # pacman
-├── macos           # brew
+├── linux-fedora    # dnf
 └── windows         # winget IDs, used by install/windows/install.ps1
 #+end_example
 
