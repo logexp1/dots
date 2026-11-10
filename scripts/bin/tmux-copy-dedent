@@ -1,0 +1,12 @@
+#!/bin/sh
+# tmux copy-mode 'y': 공통 앞 공백 · 줄 끝 공백을 지운 뒤 OSC 52 로 클라이언트(kitty) 클립보드에 쓴다.
+# V(줄 단위)로 고르면 블록 선택 없이도 Claude Code 출력의 앞 여백이 빠진다. 상대 들여쓰기는 유지.
+# 첫 줄은 v 로 글자부터 고르는 경우가 많아 최솟값 계산에서 빼고, 자기 앞 공백만 지운다.
+# 스페이스만 센다(탭·글자는 지우지 않음). 한 줄이라도 공백 없이 시작하면(최솟값 0) 그대로 둔다.
+buf=$(awk '
+  { sub(/[ \t]+$/, ""); l[NR] = $0
+    if (NR > 1 && $0 != "") { match($0, /^ */); if (min == "" || RLENGTH < min) min = RLENGTH } }
+  END { sub(/^ +/, "", l[1]); print l[1]
+        for (i = 2; i <= NR; i++) print substr(l[i], min + 1) }')
+printf '\033]52;c;%s\a' "$(printf '%s' "$buf" | base64 | tr -d '\n')" \
+  > "$(tmux display-message -p '#{client_tty}')"
