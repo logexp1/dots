@@ -2809,7 +2809,23 @@ Git gutter:
         :n "yn" #'dirvish-copy-file-name
         :n "pp" #'dirvish-yank
         :n "pm" #'dirvish-move
-        :n "pl" #'dirvish-symlink))
+        :n "pl" #'dirvish-symlink)
+
+  ;; Only open with the preview layout when the frame is wide enough; narrow
+  ;; emacsclient frames get a plain listing (M-x dirvish-layout-toggle still
+  ;; brings the preview up on demand).
+  (defvar js/dirvish-preview-min-width 120
+    "Minimum frame width (columns) for dirvish to start with its preview layout.")
+  (defadvice! js/dirvish-preview-only-if-wide-a (fn &rest args)
+    :around #'dirvish--try-reuse
+    (let ((layout dirvish-default-layout))
+      (prog1 (let ((dirvish-default-layout
+                    (and (>= (frame-width) js/dirvish-preview-min-width) layout)))
+               (apply fn args))
+        ;; a session created while narrow would otherwise get dirvish's
+        ;; fallback toggle layout instead of ours
+        (when-let ((dv (dirvish-curr)))
+          (setf (dv-ff-layout dv) layout))))))
 
 (dirvish-define-preview eza (file)
   "Use `exa' to generate directory preview."
