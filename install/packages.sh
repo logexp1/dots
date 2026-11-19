@@ -23,6 +23,17 @@ setup_fedora_repos() {
     local ver
     ver="$(rpm -E %fedora)"
 
+    # A fresh install keeps dnf's defaults, under which a stalled mirror is
+    # dropped only after 30s below 1 KB/s. Pick the nearest mirror, download in
+    # parallel, and abandon any mirror under 50 KiB/s for 15s. Written to
+    # /etc/dnf/libdnf5.conf.d/20-user-settings.conf; re-running is a no-op.
+    log_step "packages" "Tuning dnf mirror selection and timeouts..."
+    sudo dnf config-manager setopt \
+        fastestmirror=True max_parallel_downloads=10 minrate=51200 timeout=15 \
+        || log_warn "packages" "Could not tune dnf settings; continuing with defaults."
+    sudo dnf makecache --refresh \
+        || log_warn "packages" "dnf makecache failed; mirrors may be unreachable."
+
     if ! rpm -q rpmfusion-free-release rpmfusion-nonfree-release &>/dev/null; then
         log_step "packages" "Enabling RPM Fusion (free + nonfree)..."
         sudo dnf install -y \
