@@ -59,9 +59,45 @@ git+https://github.com/languitar/pass-git-helper.git pipx
 # Browser + WM / Desktop
 firefox
 foot
-hyprpolkitagent
 cascadia-mono-nf-fonts
+jetbrains-mono-fonts-all
 neovim dnf-copr agriffis/neovim-nightly
+
+# Hyprland (lionheartp COPR). Listed before kitty and the -devel libs below so
+# the COPR is enabled first and they resolve to its builds, which have to
+# match the installed hyprland for hyprpm to build plugins.
+hyprland dnf-copr lionheartp/Hyprland
+hyprlock dnf-copr lionheartp/Hyprland
+hypridle dnf-copr lionheartp/Hyprland
+hyprpicker dnf-copr lionheartp/Hyprland
+hyprpolkitagent dnf-copr lionheartp/Hyprland
+hyprland-guiutils dnf-copr lionheartp/Hyprland
+xdg-desktop-portal-hyprland dnf-copr lionheartp/Hyprland
+uwsm dnf-copr lionheartp/Hyprland
+grimblast dnf-copr lionheartp/Hyprland
+cliphist dnf-copr lionheartp/Hyprland
+waybar-git dnf-copr lionheartp/Hyprland
+SwayNotificationCenter dnf-copr erikreider/SwayNotificationCenter
+xdg-desktop-portal-gtk
+rofi
+wl-clipboard
+grim
+slurp
+jq
+libnotify
+psmisc
+gnome-keyring
+
+# Desktop applets / tools launched from waybar and keybindings
+brightnessctl
+playerctl
+pavucontrol
+blueman
+network-manager-applet
+nm-connection-editor
+btop
+nvtop
+
 kitty
 aquamarine-devel
 hyprlang-devel
@@ -77,10 +113,12 @@ xcb-util-wm-devel
 xcb-util-errors-devel
 hyprwire-devel
 tomlplusplus-devel
+# repo comes from fedora-workstation-repositories, enabled in setup_fedora_repos
 google-chrome-stable
 
 # OneDrive
 onedrive
+# RPM Fusion nonfree, enabled in setup_fedora_repos
 dropbox
 
 # Python tools
@@ -112,7 +150,7 @@ zathura
 zathura-pdf-mupdf
 imv
 chafa
-satty 
+satty dnf-copr mineiro/satty
 loupe
 
 # kubernetes

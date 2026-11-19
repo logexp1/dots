@@ -47,6 +47,7 @@ symlinked into =~/=.
 | =gpg=      | Import GPG keys and initialize password store      |
 | =doom=     | Install and configure Doom Emacs                   |
 | =yazi=     | Install yazi plugins and set xdg mime defaults     |
+| =ivanti=   | Install Ivanti VPN + F42 webkit RPMs from OneDrive |
 
 When running =./install.sh all=, modules execute in the order listed above.
 

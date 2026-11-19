@@ -16,6 +16,29 @@ ensure_npm_prefix() {
     npm config set prefix "$NPM_PREFIX"
 }
 
+# Third-party repos that can't be expressed as a per-line dnf-copr/dnf-repo
+# entry: RPM Fusion (dropbox, codecs) ships release RPMs, and Google Chrome's
+# repo comes disabled in fedora-workstation-repositories. Idempotent.
+setup_fedora_repos() {
+    local ver
+    ver="$(rpm -E %fedora)"
+
+    if ! rpm -q rpmfusion-free-release rpmfusion-nonfree-release &>/dev/null; then
+        log_step "packages" "Enabling RPM Fusion (free + nonfree)..."
+        sudo dnf install -y \
+            "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${ver}.noarch.rpm" \
+            "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${ver}.noarch.rpm" \
+            || log_warn "packages" "RPM Fusion setup failed; dropbox will fail below."
+    fi
+
+    if ! dnf repolist --enabled 2>/dev/null | grep -q '^google-chrome'; then
+        log_step "packages" "Enabling the Google Chrome repo..."
+        { sudo dnf install -y fedora-workstation-repositories \
+            && sudo dnf config-manager setopt google-chrome.enabled=1; } \
+            || log_warn "packages" "Chrome repo setup failed; google-chrome-stable will fail below."
+    fi
+}
+
 default_pm() {
     case "$OS" in
         linux-debian) echo "apt" ;;
@@ -36,7 +59,9 @@ install_with() {
 
     case "$pm" in
         apt)
-            sudo apt install -y "$pkg"
+            # Explicit return: errexit is off inside `if ! install_with`, and
+            # the trailing rustup `if` would otherwise mask an apt failure.
+            sudo apt install -y "$pkg" || return 1
             [[ "$pkg" == "npm" ]] && ensure_npm_prefix
             if [[ "$pkg" == "rustup" ]]; then
                 log_step "packages" "Initializing rustup with stable toolchain..."
@@ -54,13 +79,15 @@ install_with() {
             local repo_id
             repo_id=$(basename "$extra" .repo)
             if ! sudo dnf repolist --enabled | grep -q "^$repo_id"; then
-                sudo dnf config-manager addrepo --from-repofile="$extra"
+                sudo dnf config-manager addrepo --from-repofile="$extra" || return 1
             fi
             sudo dnf install -y --repo "$repo_id" "$pkg"
             ;;
         dnf-copr)
             if ! sudo dnf copr list --enabled 2>/dev/null | grep -q "$extra"; then
-                sudo dnf copr enable -y "$extra"
+                # || return: otherwise a failed enable falls through and a
+                # package that also exists in Fedora installs from the wrong repo.
+                sudo dnf copr enable -y "$extra" || return 1
             fi
             sudo dnf install -y "$pkg"
             ;;
@@ -89,8 +116,11 @@ install_with() {
 			pipx install "$pkg" || pipx upgrade "$pkg"
 			;;
 		cargo)
-			if ! command -v cargo &>/dev/null; then
-				log_step "packages" "cargo not found, installing rustup..."
+			[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+			# `cargo --version`, not `command -v cargo`: a rustup proxy can be
+			# on PATH with no toolchain installed, and then every install fails.
+			if ! cargo --version &>/dev/null; then
+				log_step "packages" "No working cargo, installing rustup + stable toolchain..."
 				case "$OS" in
 					linux-fedora) sudo dnf install -y rustup && rustup-init -y ;;
 					linux-debian) sudo apt install -y rustup && rustup default stable ;;
@@ -137,6 +167,9 @@ run() {
         sudo apt update -qq
     fi
 
+    [[ "$OS" == "linux-fedora" ]] && setup_fedora_repos
+
+    local failed=()
 
     local pkg_file="$PACKAGES_DIR/$OS"
     if [[ ! -f "$pkg_file" ]]; then
@@ -158,10 +191,23 @@ run() {
         extra="$(echo "$line" | awk '{print $3}')"
 
         log_step "packages" "Installing $pkg with $pm..."
-        install_with "$pm" "$pkg" "$extra"
+        # One bad line must not abort the remaining packages: record it and
+        # move on. stdin is detached so an installer that reads it cannot
+        # swallow the rest of the package list.
+        if ! install_with "$pm" "$pkg" "$extra" </dev/null; then
+            log_error "packages" "Failed: $pkg ($pm)"
+            failed+=("$pkg ($pm)")
+        fi
     done < "$pkg_file"
 
     ensure_npm_prefix
+
+    # Report but don't fail the module: later modules (stow especially) are
+    # still worth running, and the list tells you what to retry.
+    if (( ${#failed[@]} )); then
+        log_error "packages" "${#failed[@]} package(s) failed; retry them by hand:"
+        printf '  %s\n' "${failed[@]}" >&2
+    fi
 
     log_step "packages" "Done."
 }

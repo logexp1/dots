@@ -9,7 +9,7 @@ fi
 INSTALL_DIR="$(dirname "$(realpath "$0")")/install"
 source "$INSTALL_DIR/common.sh"
 
-MODULES=(packages root shell git emacs hyprpm wal stow gpg doom yazi)
+MODULES=(packages root shell git emacs hyprpm wal stow gpg doom yazi ivanti)
 
 usage() {
     echo "Usage: $(basename "$0") <module> [module...]"
