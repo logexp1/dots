@@ -9,8 +9,11 @@ Personal dotfiles managed via [GNU Stow](https://www.gnu.org/software/stow/), pl
 ## Common commands
 
 ```bash
-# Show available install modules
+# Pick modules from an interactive checklist (all checked by default)
 ./install.sh
+
+# Show usage and available modules
+./install.sh --help
 
 # Run all modules in order
 ./install.sh all
