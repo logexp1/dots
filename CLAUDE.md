@@ -40,13 +40,12 @@ Personal dotfiles managed via [GNU Stow](https://www.gnu.org/software/stow/), pl
 - `install/common.sh` — shared helpers: `detect_os`, `log_step`, `log_warn`, `log_error`, `require_cmd`. Sourced by all modules. Sets `$OS` and `$BASEDIR`.
 - `install/<module>.sh` — each module defines a `run()` function. Modules can also be run standalone since they guard with `[[ "${BASH_SOURCE[0]}" == "$0" ]]`.
 - Current modules (in execution order): `packages root shell git emacs wal stow gpg doom mime ivanti`. The `packages` module sets the global npm prefix to `~/.local` (via `ensure_npm_prefix`, before any `npm install -g`) so npm globals install without sudo. On Fedora it first tunes dnf mirror selection (fastestmirror, parallel downloads, drop mirrors under 50 KiB/s after 15s) and enables RPM Fusion and the Google Chrome repo (`setup_fedora_repos`). A failing package is logged and skipped, and the failures are listed at the end; it does not abort the run.
-- `post_install.sh` runs the modules that need a running Hyprland session (`POST_MODULES`, currently `hyprpm`). It refuses to run outside Hyprland and is meant to be run once after rebooting into Hyprland.
 - `stow` seeds the gitignored per-machine Hyprland files (`configs/monitors.conf` with an auto layout, `configs/gpu.conf` copied from the inert `gpu.conf.example`) when they are missing.
 - `ivanti` (Fedora only) installs pulsesecure together with the F42 `webkit2gtk4.0` + `javascriptcoregtk4.0` RPMs from `~/OneDrive/ivanti-f42/`, since newer Fedora dropped webkit2gtk-4.0. It skips with a hint if OneDrive hasn't synced yet.
 
 ### Package lists (`install/packages/`)
 
-One file per OS: `linux-debian` (apt), `linux-arch` (pacman), `linux-fedora` (dnf). Each line is `<package> [<package-manager> [<extra>]]`. If no PM is given, the OS default is used. Supported non-default PMs: `yay`, `npm`, `pip`, `pipx`, `cargo`, `flatpak`, `dnf-copr <owner/project>`, `dnf-repo <.repo URL>`. On Fedora the whole Hyprland stack comes from the `lionheartp/Hyprland` COPR; its lines sit before `kitty` and the `*-devel` libs so those resolve to the matching COPR builds (hyprpm needs them). Lines starting with `#` are treated as comments and skipped.
+One file per OS: `linux-debian` (apt), `linux-arch` (pacman), `linux-fedora` (dnf). Each line is `<package> [<package-manager> [<extra>]]`. If no PM is given, the OS default is used. Supported non-default PMs: `yay`, `npm`, `pip`, `pipx`, `cargo`, `flatpak`, `dnf-copr <owner/project>`, `dnf-repo <.repo URL>`. On Fedora the whole Hyprland stack comes from the `lionheartp/Hyprland` COPR. Lines starting with `#` are treated as comments and skipped.
 
 ### Stow packages
 
@@ -79,4 +78,4 @@ PowerShell counterpart of `install.sh` with modules `packages gpg passmenu trida
 
 ### Hyprland config (`wm/`)
 
-`wm/.config/hypr/hyprland.conf` sources split config files from `wm/.config/hypr/configs/`: `envs.conf`, `settings.conf`, `monitors.conf`, `keybindings.conf`, `windowrules.conf`, `startups.conf`, `hyprfocus.conf`. Edit the relevant sub-file rather than the main conf.
+`wm/.config/hypr/hyprland.conf` sources split config files from `wm/.config/hypr/configs/`: `envs.conf`, `settings.conf`, `monitors.conf`, `keybindings.conf`, `windowrules.conf`, `startups.conf`. Edit the relevant sub-file rather than the main conf.

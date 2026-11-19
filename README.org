@@ -50,10 +50,6 @@ symlinked into =~/=.
 
 When running =./install.sh all=, modules execute in the order listed above.
 
-Steps that need a running Hyprland session (currently =hyprpm=, which sets up
-Hyprland plugins) live in =./post_install.sh=. Run it once after rebooting and
-logging in to Hyprland.
-
 * Stow Packages
 
 Every top-level directory except =install/= is treated as a stow package.

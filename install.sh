@@ -117,4 +117,4 @@ for mod in "${selected[@]}"; do
 done
 
 echo ""
-log_step "install" "All done! After rebooting, log in to Hyprland and run ./post_install.sh"
+log_step "install" "All done!"
