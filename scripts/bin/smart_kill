@@ -12,4 +12,4 @@ for sc in "${SCRATCHPAD_CLASSES[@]}"; do
     fi
 done
 
-hyprctl dispatch killactive
+~/bin/hypr-dispatch 'hl.dsp.window.close()' killactive

@@ -78,4 +78,8 @@ PowerShell counterpart of `install.sh` with modules `packages gpg passmenu trida
 
 ### Hyprland config (`wm/`)
 
-`wm/.config/hypr/hyprland.conf` sources split config files from `wm/.config/hypr/configs/`: `envs.conf`, `settings.conf`, `monitors.conf`, `keybindings.conf`, `windowrules.conf`, `startups.conf`. Edit the relevant sub-file rather than the main conf.
+Hyprland >= 0.57 reads only the Lua config: `wm/.config/hypr/hyprland.lua` `require`s split modules from `wm/.config/hypr/configs/`: `envs.lua`, `startups.lua`, `settings.lua`, `keybindings.lua`, `windowrules.lua`, plus the per-machine, gitignored `monitors.lua` and `gpu.lua` (seeded by `stow` from an auto layout and the inert `gpu.lua.example`). Edit the relevant sub-file rather than the main file, and check changes with `Hyprland --verify-config`.
+
+The hyprlang files (`hyprland.conf` and `configs/*.conf`) are a parallel copy kept for machines still on Hyprland <= 0.55, which ignore the Lua files. Keep both in sync until every machine is on 0.57.
+
+On 0.57 `hyprctl dispatch` takes Lua (`'hl.dsp.window.close()'`) and `hyprctl keyword` is gone. Scripts call `~/bin/hypr-dispatch '<lua>' '<legacy>'` (or `~/bin/hypr-dpms on|off`), which works on both.

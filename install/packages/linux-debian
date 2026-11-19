@@ -40,6 +40,8 @@ sshfs
 uv pipx
 podman
 fzf
+zoxide
+tree
 iwe cargo
 iwec cargo
 iwes cargo

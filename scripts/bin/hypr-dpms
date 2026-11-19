@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# hypr-dpms on|off -- turn monitors on/off on any Hyprland version.
+case "$1" in
+    on)  exec ~/bin/hypr-dispatch 'hl.dsp.dpms({ action = "enable" })' 'dpms on' ;;
+    off) exec ~/bin/hypr-dispatch 'hl.dsp.dpms({ action = "disable" })' 'dpms off' ;;
+    *)   echo "usage: $(basename "$0") on|off" >&2; exit 1 ;;
+esac

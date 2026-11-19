@@ -63,7 +63,7 @@
         "buttons-grid": {
             "actions": [
                 {
-                "label": "󰍃","command": "hyprctl dispatch exit"
+                "label": "󰍃","command": "~/bin/hypr-dispatch 'hl.dsp.exit()' exit"
             },
             {
                 "label": "󰕾","command": "pactl set-sink-mute @DEFAULT_SINK@ toggle"

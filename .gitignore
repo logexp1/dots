@@ -18,5 +18,7 @@ wm/.cache
 browsing/.mozilla/firefox/
 browsing/.mozilla/native-messaging-hosts/tridactyl*
 wm/.config/hypr/configs/monitors.conf
+wm/.config/hypr/configs/monitors.lua
 *pycache*
 wm/.config/hypr/configs/gpu.conf
+wm/.config/hypr/configs/gpu.lua

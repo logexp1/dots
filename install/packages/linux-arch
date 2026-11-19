@@ -8,6 +8,8 @@ cpio
 cmake
 stow
 tmux
+zoxide
+tree
 neovim
 kitty
 foot

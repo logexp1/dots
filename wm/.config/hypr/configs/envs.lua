@@ -1,0 +1,25 @@
+local home = os.getenv("HOME")
+
+hl.env("QT_IM_MODULE", "fcitx")
+hl.env("SDL_IM_MODULE", "fcitx")
+hl.env("XMODIFIERS", "@im=fcitx")
+hl.env("ALTERNATE_EDITOR", "")
+hl.env("EDITOR", "nvim")
+hl.env("BROWSER", "firefox")
+hl.env("LANG", "en_US.UTF-8")
+hl.env("XDG_SESSION_TYPE", "wayland")
+hl.env("XCURSOR_SIZE", "24")
+hl.env("QT_QPA_PLATFORMTHEME", "qt5ct")
+hl.env("_JAVA_AWT_WM_NONREPARENTING", "1")
+hl.env("WORKON_HOME", home .. "/.virtualenvs")
+hl.env("XDG_DATA_DIRS", "/var/lib/flatpak/exports/share:" .. home .. "/.local/share/flatpak/exports/share:/usr/local/share:/usr/share")
+hl.env("XDG_PICTURES_DIR", home .. "/Pictures")
+hl.env("XDG_SCREENSHOTS_DIR", home .. "/Pictures/Screenshots")
+hl.env("LD_LIBRARY_PATH", "/usr/local/cuda-12.4/lib64/")
+hl.env("MOZ_WEBRENDER", "1")
+hl.env("PATH", home .. "/bin:" .. home .. "/.local/bin:" .. home .. "/.cargo/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin")
+
+-- GPU / display env lives in a per-machine file (gitignored, like monitors.lua)
+-- because the correct values depend on which GPU the displays are wired to.
+-- See gpu.lua.example.
+require("configs.gpu")

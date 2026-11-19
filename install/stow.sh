@@ -87,6 +87,20 @@ seed_machine_files() {
         log_step "stow" "Seeding $hypr_cfg/gpu.conf from gpu.conf.example (inert; pick a profile)"
         cp "$hypr_cfg/gpu.conf.example" "$hypr_cfg/gpu.conf"
     fi
+
+    # Hyprland >= 0.57 reads only the Lua config, which requires these two.
+    if [[ ! -e "$hypr_cfg/monitors.lua" ]]; then
+        log_step "stow" "Seeding $hypr_cfg/monitors.lua (auto layout; edit per machine)"
+        printf '%s\n' \
+            '-- Per-machine monitor layout (gitignored). Seeded by install/stow.sh.' \
+            '-- List outputs with: hyprctl monitors all' \
+            'hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })' > "$hypr_cfg/monitors.lua"
+    fi
+
+    if [[ ! -e "$hypr_cfg/gpu.lua" && -f "$hypr_cfg/gpu.lua.example" ]]; then
+        log_step "stow" "Seeding $hypr_cfg/gpu.lua from gpu.lua.example (inert; pick a profile)"
+        cp "$hypr_cfg/gpu.lua.example" "$hypr_cfg/gpu.lua"
+    fi
 }
 
 run() {

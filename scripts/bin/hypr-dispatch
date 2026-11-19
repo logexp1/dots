@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Run a Hyprland dispatcher on both config generations.
+#   hypr-dispatch '<lua dispatcher>' '<legacy dispatcher>'
+#   hypr-dispatch 'hl.dsp.dpms({ action = "disable" })' 'dpms off'
+# Hyprland >= 0.57 only accepts the Lua form; older versions reject it as an
+# invalid dispatcher, in which case the legacy form is sent instead.
+
+out=$(hyprctl dispatch "$1")
+if [[ "$out" == *"Invalid dispatcher"* ]]; then
+    read -ra legacy <<< "$2"
+    hyprctl dispatch "${legacy[@]}"
+else
+    printf '%s\n' "$out"
+fi
