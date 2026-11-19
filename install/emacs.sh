@@ -22,7 +22,7 @@ run() {
     local emacs_src="$build_dir/emacs"
     mkdir -p "$build_dir"
 
-	local emacs_branch="emacs-30.2"
+	local emacs_branch="emacs-31.1"
     if [[ -d "$emacs_src" ]]; then
         log_step "emacs" "Source directory already exists, pulling latest..."
         git -C "$emacs_src" fetch
