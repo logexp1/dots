@@ -50,6 +50,33 @@ setup_fedora_repos() {
     fi
 }
 
+# Bring the whole system up to date before installing anything. Installing on
+# top of a stale release image pulls new libraries in only as dependencies,
+# which can leave mismatched pairs behind (e.g. a new Mesa next to the release
+# libdrm, under which Hyprland cannot initialise an AMD GPU). On Fedora this
+# runs after setup_fedora_repos so RPM Fusion's packages are updated too.
+upgrade_system() {
+    log_step "packages" "Upgrading the system before installing packages..."
+    case "$OS" in
+        linux-fedora) sudo dnf upgrade -y --refresh ;;
+        linux-debian) sudo apt upgrade -y ;;
+        linux-arch)   sudo pacman -Syu --noconfirm ;;
+        *) return 0 ;;
+    esac || log_warn "packages" "System upgrade failed; packages below may pull mismatched libraries."
+}
+
+# The upgrade above may install a new kernel; driver modules (akmod-nvidia) and
+# the graphics stack expect it, so say so instead of leaving it to be found.
+warn_if_reboot_needed() {
+    [[ "$OS" == "linux-fedora" ]] || return 0
+    local newest
+    newest="$(rpm -q --last kernel-core 2>/dev/null | head -1 | awk '{print $1}')"
+    newest="${newest#kernel-core-}"
+    if [[ -n "$newest" && "$newest" != "$(uname -r)" ]]; then
+        log_warn "packages" "Kernel $newest was installed but $(uname -r) is running. Reboot before starting Hyprland."
+    fi
+}
+
 default_pm() {
     case "$OS" in
         linux-debian) echo "apt" ;;
@@ -179,6 +206,7 @@ run() {
     fi
 
     [[ "$OS" == "linux-fedora" ]] && setup_fedora_repos
+    upgrade_system
 
     local failed=()
 
@@ -212,6 +240,7 @@ run() {
     done < "$pkg_file"
 
     ensure_npm_prefix
+    warn_if_reboot_needed
 
     # Report but don't fail the module: later modules (stow especially) are
     # still worth running, and the list tells you what to retry.

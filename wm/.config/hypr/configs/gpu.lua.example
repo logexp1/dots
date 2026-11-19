@@ -1,13 +1,14 @@
 -- Template for configs/gpu.lua, which is per-machine and gitignored.
 --
--- Copy this file to gpu.lua, then UNCOMMENT EXACTLY ONE profile. Everything
--- here is commented on purpose: a bare copy is inert, so a fresh machine gets
--- no GPU env rather than the wrong one.
+-- install/gpu.sh copies this file to gpu.lua and appends the profile that fits
+-- the machine; on a machine without an NVIDIA GPU nothing is needed and the
+-- copy stays inert. To choose by hand, copy this file to gpu.lua and
+-- UNCOMMENT EXACTLY ONE profile.
 --
 -- Which profile applies comes down to one question -- which GPU are the displays
 -- wired to? Check with:
 --   for c in /sys/class/drm/card*-*/status; do printf '%-24s %s\n' "${c%/status}" "$(cat $c)"; done
---   hyprctl monitors | grep -E 'Monitor|scale'
+--   cat /sys/class/drm/card1/device/vendor   # 0x10de NVIDIA, 0x1002 AMD, 0x8086 Intel
 -- The card that owns the *connected* connectors is the one that scans out.
 
 -- --- Profile A: displays wired to an AMD/Intel iGPU (muxless laptop) ---------
@@ -18,19 +19,11 @@
 -- hl.env("WLR_NO_HARDWARE_CURSORS", "1")
 
 -- --- Profile B: displays wired to the NVIDIA GPU (typical desktop) ----------
--- Hyprland itself runs on NVIDIA, so these are the backends it recommends, and
--- there is no cross-GPU path at all -- prime-run is pointless here.
--- hl.env("GBM_BACKEND", "nvidia-drm")
--- hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
--- hl.env("WLR_NO_HARDWARE_CURSORS", "1")
-
--- Do NOT enable the three below unless nvidia-vaapi-driver is actually present:
--- it is not in Fedora/RPM Fusion any more (dnf repoquery finds nothing), so it
--- has to be built from source or pulled from a COPR. Setting LIBVA_DRIVER_NAME
--- without it makes libva fail outright (va_openDriver returns -1) instead of
--- quietly falling back, and MOZ_DISABLE_RDD_SANDBOX only weakens Firefox's
--- sandbox with nothing to gain. For video on NVIDIA, mpv/VLC can use NVDEC
--- directly (mpv --hwdec=nvdec), which needs none of this.
+-- Hyprland itself runs on NVIDIA, so there is no cross-GPU path at all and
+-- prime-run is pointless. VA-API goes through libva-nvidia-driver (RPM
+-- Fusion, installed by install/gpu.sh); without it LIBVA_DRIVER_NAME=nvidia
+-- makes libva fail outright (va_openDriver returns -1) instead of falling back.
+-- MOZ_DISABLE_RDD_SANDBOX lets Firefox reach the driver for video decoding.
 -- hl.env("LIBVA_DRIVER_NAME", "nvidia")
 -- hl.env("NVD_BACKEND", "direct")
 -- hl.env("MOZ_DISABLE_RDD_SANDBOX", "1")

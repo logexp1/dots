@@ -36,7 +36,8 @@ symlinked into =~/=.
 
 | Module     | Description                                        |
 |------------+----------------------------------------------------|
-| =packages= | Install system packages from the OS-specific list  |
+| =packages= | Upgrade the system, then install the OS package list |
+| =gpu=      | NVIDIA driver (Fedora) + per-machine Hyprland gpu.lua |
 | =root=     | Copy =install/system/= files into =/= (needs sudo) |
 | =shell=    | Set zsh as the default shell                       |
 | =git=      | Configure global git settings                      |
