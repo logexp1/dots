@@ -10,6 +10,12 @@ run() {
         return 0
     fi
 
+    # hyprpm reads the version from the running compositor.
+    if [[ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
+        log_warn "hyprpm" "Hyprland is not running, skipping. Rerun ./install.sh hyprpm inside Hyprland."
+        return 0
+    fi
+
     hyprpm update
     hyprpm add https://github.com/hyprwm/hyprland-plugins || true
     hyprpm reload

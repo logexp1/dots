@@ -9,7 +9,7 @@ fi
 INSTALL_DIR="$(dirname "$(realpath "$0")")/install"
 source "$INSTALL_DIR/common.sh"
 
-MODULES=(packages root shell git emacs hyprpm wal stow gpg doom yazi ivanti)
+MODULES=(packages root shell git emacs wal stow gpg doom mime ivanti)
 
 usage() {
     echo "Usage: $(basename "$0") [<module>...|all]"
@@ -117,4 +117,4 @@ for mod in "${selected[@]}"; do
 done
 
 echo ""
-log_step "install" "All done!"
+log_step "install" "All done! After rebooting, log in to Hyprland and run ./post_install.sh"

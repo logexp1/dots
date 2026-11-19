@@ -41,15 +41,18 @@ symlinked into =~/=.
 | =shell=    | Set zsh as the default shell                       |
 | =git=      | Configure global git settings                      |
 | =emacs=    | Build Emacs from source                            |
-| =hyprpm=   | Set up Hyprland plugins                            |
 | =wal=      | Link wallpapers and generate a pywal color scheme  |
 | =stow=     | Symlink dotfiles into =~/= via GNU Stow            |
 | =gpg=      | Import GPG keys and initialize password store      |
 | =doom=     | Install and configure Doom Emacs                   |
-| =yazi=     | Install yazi plugins and set xdg mime defaults     |
+| =mime=     | Set xdg mime defaults (zathura, imv)               |
 | =ivanti=   | Install Ivanti VPN + F42 webkit RPMs from OneDrive |
 
 When running =./install.sh all=, modules execute in the order listed above.
+
+Steps that need a running Hyprland session (currently =hyprpm=, which sets up
+Hyprland plugins) live in =./post_install.sh=. Run it once after rebooting and
+logging in to Hyprland.
 
 * Stow Packages
 

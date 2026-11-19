@@ -112,6 +112,7 @@ muParser-devel
 xcb-util-wm-devel
 xcb-util-errors-devel
 hyprwire-devel
+hyprwayland-scanner-devel
 tomlplusplus-devel
 # repo comes from fedora-workstation-repositories, enabled in setup_fedora_repos
 google-chrome-stable
@@ -132,7 +133,6 @@ swaybg
 # Cargo packages
 hyprland-autoname-workspaces cargo
 eza cargo
-yazi-build cargo
 git+https://github.com/Feel-ix-343/markdown-oxide.git#markdown-oxide cargo
 git+https://github.com/rtk-ai/rtk cargo
 iwe cargo

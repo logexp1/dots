@@ -17,7 +17,6 @@ wm/.cache
 .omc
 browsing/.mozilla/firefox/
 browsing/.mozilla/native-messaging-hosts/tridactyl*
-terminal/.config/yazi/plugins
 wm/.config/hypr/configs/monitors.conf
 *pycache*
 wm/.config/hypr/configs/gpu.conf
