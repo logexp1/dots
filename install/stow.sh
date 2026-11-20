@@ -68,13 +68,27 @@ backup_conflicts() {
     done
 }
 
-# hyprland.lua requires configs/monitors.lua and configs/gpu.lua, which are
+# Hyprland < 0.55 sources configs/monitors.conf and configs/gpu.conf, which are
 # per-machine and gitignored, so a fresh clone has neither and Hyprland starts
 # with a config error. Seed safe defaults; never touch existing files.
 seed_machine_files() {
     local hypr_cfg="$BASEDIR/wm/.config/hypr/configs"
     [[ -d "$hypr_cfg" ]] || return 0
 
+    if [[ ! -e "$hypr_cfg/monitors.conf" ]]; then
+        log_step "stow" "Seeding $hypr_cfg/monitors.conf (auto layout; edit per machine)"
+        printf '%s\n' \
+            '# Per-machine monitor layout (gitignored). Seeded by install/stow.sh.' \
+            '# List outputs with: hyprctl monitors all' \
+            'monitor = , preferred, auto, auto' > "$hypr_cfg/monitors.conf"
+    fi
+
+    if [[ ! -e "$hypr_cfg/gpu.conf" && -f "$hypr_cfg/gpu.conf.example" ]]; then
+        log_step "stow" "Seeding $hypr_cfg/gpu.conf from gpu.conf.example (inert; pick a profile)"
+        cp "$hypr_cfg/gpu.conf.example" "$hypr_cfg/gpu.conf"
+    fi
+
+    # Hyprland >= 0.57 reads only the Lua config, which requires these two.
     if [[ ! -e "$hypr_cfg/monitors.lua" ]]; then
         log_step "stow" "Seeding $hypr_cfg/monitors.lua (auto layout; edit per machine)"
         printf '%s\n' \

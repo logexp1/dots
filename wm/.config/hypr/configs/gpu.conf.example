@@ -1,0 +1,29 @@
+# Template for configs/gpu.conf, which is per-machine and gitignored. Only
+# Hyprland < 0.55 reads it; newer Hyprland uses gpu.lua (see gpu.lua.example).
+#
+# Copy this file to gpu.conf, then UNCOMMENT EXACTLY ONE profile. Everything
+# here is commented on purpose: a bare copy is inert, so a fresh machine gets
+# no GPU env rather than the wrong one.
+#
+# Which profile applies comes down to one question -- which GPU are the displays
+# wired to? Check with:
+#   for c in /sys/class/drm/card*-*/status; do printf '%-24s %s\n' "${c%/status}" "$(cat $c)"; done
+#   cat /sys/class/drm/card1/device/vendor   # 0x10de NVIDIA, 0x1002 AMD, 0x8086 Intel
+# The card that owns the *connected* connectors is the one that scans out.
+
+# --- Profile A: displays wired to an AMD/Intel iGPU (muxless laptop) ---------
+# Clients must render on the iGPU that scans out. Sending them to the dGPU adds
+# a cross-GPU dmabuf import per frame, which can leave windows rendering as
+# garbled shrunken text after the dGPU cycles its VRAM. dGPU via prime-run.
+# env = LIBVA_DRIVER_NAME, radeonsi        # Intel iGPU: iHD
+# env = WLR_NO_HARDWARE_CURSORS, 1
+
+# --- Profile B: displays wired to the NVIDIA GPU (typical desktop) ----------
+# Hyprland itself runs on NVIDIA, so there is no cross-GPU path at all and
+# prime-run is pointless. VA-API goes through libva-nvidia-driver (RPM
+# Fusion, installed by install/gpu.sh); without it LIBVA_DRIVER_NAME=nvidia
+# makes libva fail outright (va_openDriver returns -1) instead of falling back.
+# MOZ_DISABLE_RDD_SANDBOX lets Firefox reach the driver for video decoding.
+# env = LIBVA_DRIVER_NAME, nvidia
+# env = NVD_BACKEND, direct
+# env = MOZ_DISABLE_RDD_SANDBOX, 1
