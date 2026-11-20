@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Show the kitty scrollback in an emacsclient terminal frame, with colors.
+# kitty pipes the scrollback (SGR codes included) on stdin, see kitty.conf:
+#   launch --type=overlay --stdin-source=@screen_scrollback --stdin-add-formatting kitty-scrollback-emacs
+# In the frame: q (or C-x 5 0) closes it, y in visual state yanks to the clipboard.
+
+file="$(mktemp --tmpdir kitty-scrollback.XXXXXX)"
+trap 'rm -f "$file"' EXIT
+cat > "$file"
+
+emacsclient -t -a '' -e "
+(let ((buf (generate-new-buffer \"*kitty-scrollback*\")))
+  (switch-to-buffer buf)
+  (insert-file-contents \"$file\")
+  (require 'ansi-color)
+  (ansi-color-apply-on-region (point-min) (point-max))
+  ;; drop the trailing blank screen lines kitty sends
+  (goto-char (point-max))
+  (skip-chars-backward \" \t\n\")
+  (delete-region (point) (point-max))
+  (set-buffer-modified-p nil)
+  (read-only-mode 1)
+  (let ((quit (lambda () (interactive)
+                (kill-buffer buf)
+                (delete-frame))))
+    (local-set-key (kbd \"q\") quit)
+    (when (fboundp 'evil-local-set-key)
+      (evil-local-set-key 'normal (kbd \"q\") quit)))
+  (goto-char (point-max))
+  (beginning-of-line))"
