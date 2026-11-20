@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 #
-ROFI="rofi -dmenu -width 100 -selected-row 1 -i -l 20 -p"
+# ps -F puts CMD after ~75 columns, so size the window in characters (fonts
+# scale with the display) rather than a share of the screen, capped so it
+# still fits a small laptop screen.
+ROFI=(rofi -dmenu -theme-str 'window { width: calc( 160ch min 95% ); }' -selected-row 1 -i -l 20 -p)
 
 selected="$(ps --user "$USER" -F | \
-    ${ROFI} "Search for process to kill:" "$@" | \
+    "${ROFI[@]}" "Search for process to kill:" "$@" | \
     awk '{print $2" "$11}')";
 
 if [[ -n $selected ]]; then
     # Piping No/Yes into dmenu as a safety measure, in case you
-    answer="$(echo -e "Yes\nNo" | ${ROFI} "Kill $selected?" "$@")"
+    answer="$(echo -e "Yes\nNo" | "${ROFI[@]}" "Kill $selected?" "$@")"
     if [[ $answer == "Yes" ]]; then
         kill -9 "${selected%% *}"
         echo "Prcess $selected has been killed." && exit 0
