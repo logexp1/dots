@@ -55,7 +55,9 @@ listview {
     spacing:                        2%;
     cycle:                          true;
     dynamic:                        true;
-    layout:                         horizontal;
+    layout:                         vertical;
+    columns:                        5;
+    lines:                          1;
 }
 
 mainbox {
@@ -79,7 +81,7 @@ element-text {
     expand:                         true;
     horizontal-align:               0.5;
     vertical-align:                 0.5;
-    margin:                         4.5% 2.7% 4.5% 2.7%;
+    margin:                         4.5% 0% 4.5% 0%;
 }
 
 element normal.urgent,
