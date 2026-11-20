@@ -28,7 +28,7 @@ for _, class in ipairs({
     "^([Zz]oom)$",
     "^(Slack)$",
     "^(rofi)$",
-    "^(PulseUI)$",
+    "^([Pp]ulseUI)$",
 }) do
     rule(class, { float = true })
 end
@@ -38,7 +38,7 @@ hl.window_rule({
     no_initial_focus = true,
     suppress_event = "activate activatefocus",
 })
-rule("^(PulseUI)$", { center = true })
+rule("^([Pp]ulseUI)$", { center = true })
 rule("^(pavucontrol)$", { center = true })
 
 rule("^([Rr]ofi)$", { opacity = "0.95 0.8" })
