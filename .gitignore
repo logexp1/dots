@@ -22,3 +22,9 @@ wm/.config/hypr/configs/monitors.lua
 *pycache*
 wm/.config/hypr/configs/gpu.conf
 wm/.config/hypr/configs/gpu.lua
+# ~/.claude is stowed from here; only the HUD and skills are tracked, the rest
+# is Claude Code's runtime state (credentials, history, sessions, settings.json)
+claude/.claude/*
+!claude/.claude/hud/
+!claude/.claude/skills/
+claude/.claude/skills/synced/
