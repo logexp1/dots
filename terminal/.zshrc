@@ -169,7 +169,7 @@ alias nsa='(pass navercorp/KR17397 && read -s pw && echo $pw) | sudo openconnect
 alias mons='hyprctl monitors all'
 
 # remote machine's home over sshfs (Emacs treats ~/remote specially, see config.org)
-alias rmount='sshfs remote:/home/irteam/ ~/remote -o idmap=user,max_conns=4,kernel_cache,dir_cache=yes,dcache_timeout=60'
+alias rmount='mkdir -p ~/remote && sshfs remote:/home/irteam/ ~/remote -o idmap=user,max_conns=4,kernel_cache,dir_cache=yes,dcache_timeout=60'
 alias rumount='fusermount3 -u ~/remote'
 alias windows='hyprctl clients'
 alias od_status='systemctl status --user onedrive'
