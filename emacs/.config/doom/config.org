@@ -634,8 +634,9 @@ makes life much easier
     "Add latest `consult-line' search pattern to the evil search history ring."
     (when (and (bound-and-true-p evil-mode)
                (eq evil-search-module 'evil-search))
-      (let ((pattern (car (orderless-pattern-compiler
-                           (car consult--line-history)))))
+      ;; `orderless-compile' returns (PREDICATE . REGEXPS)
+      (let ((pattern (cadr (orderless-compile
+                            (car consult--line-history)))))
         (add-to-history 'evil-ex-search-history pattern)
         (setq! evil-ex-search-pattern (list pattern t t))
         (setq! evil-ex-search-direction 'forward)
@@ -741,8 +742,10 @@ makes life much easier
                ;; don't want to edit Emacs source files as root
                (not (string-match "/usr/share/emacs/.*" file)))
       (find-file (concat "/sudo:root@localhost:" file)))))
+;; no description: in Doom 2.x `(:prefix ("f" . "file") ...)' rebinds SPC f to a
+;; fresh keymap, which would wipe the SPC f bindings defined above
 (map! :leader
-      (:prefix ("f" . "file")
+      (:prefix "f"
        :desc "sudo edit" "u" #'js/maybe-sudo-edit))
 #+end_src
 
