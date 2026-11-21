@@ -1,12 +1,70 @@
-#!/bin/sh
-# tmux copy-mode 'y': 공통 앞 공백 · 줄 끝 공백을 지운 뒤 OSC 52 로 클라이언트(kitty) 클립보드에 쓴다.
-# V(줄 단위)로 고르면 블록 선택 없이도 Claude Code 출력의 앞 여백이 빠진다. 상대 들여쓰기는 유지.
+#!/usr/bin/env python3
+# tmux copy-mode 'y': 끊긴 줄을 잇고, 공통 앞 공백 · 줄 끝 공백을 지운 뒤 OSC 52 로
+# 클라이언트(kitty) 클립보드에 쓴다. 같은 규칙이 nvim/.../plugins/kitty-scrollback.lua 에도 있다.
+#
+# 사용: tmux-copy-dedent <pane_width> <start_x> <start_y> <end_x> <end_y>  (tmux.conf 에서 넘김)
+#
+# 줄 잇기: Claude Code 같은 TUI 는 긴 문단을 화면 폭에 맞춰 직접 줄을 나눠 찍는다. 그래서
+# 터미널 입장에선 진짜 줄바꿈이다. 단어 단위로 줄을 나눌 때는 다음 단어가 안 들어갈 때만
+# 넘기므로, "앞 줄 폭 + 1 + 다음 줄 첫 단어 폭 >= 화면 폭" 이면 원래 한 줄로 보고 잇는다.
+# 빈 줄, 목록 · 표 · 프롬프트 기호로 시작하는 줄, 구분선 다음 줄, 화면 폭보다 긴 단어로 시작하는 줄은
+# 잇지 않는다. 폭은 한글을 2칸으로 센다.
+#
+# 앞 공백: V(줄 단위)로 고르면 블록 선택 없이도 앞 여백이 빠진다. 상대 들여쓰기는 유지.
 # 첫 줄은 v 로 글자부터 고르는 경우가 많아 최솟값 계산에서 빼고, 자기 앞 공백만 지운다.
-# 스페이스만 센다(탭·글자는 지우지 않음). 한 줄이라도 공백 없이 시작하면(최솟값 0) 그대로 둔다.
-buf=$(awk '
-  { sub(/[ \t]+$/, ""); l[NR] = $0
-    if (NR > 1 && $0 != "") { match($0, /^ */); if (min == "" || RLENGTH < min) min = RLENGTH } }
-  END { sub(/^ +/, "", l[1]); print l[1]
-        for (i = 2; i <= NR; i++) print substr(l[i], min + 1) }')
-printf '\033]52;c;%s\a' "$(printf '%s' "$buf" | base64 | tr -d '\n')" \
-  > "$(tmux display-message -p '#{client_tty}')"
+# 스페이스만 센다(탭 · 글자는 지우지 않음). 한 줄이라도 공백 없이 시작하면(최솟값 0) 그대로 둔다.
+import base64, re, subprocess, sys, unicodedata
+
+BLOCK = re.compile(r'^([-*+•●⎿>#|│├└┌┐┘┬┴┼─╭╮╯╰❯※]|\d+[.)](\s|$))')
+RULE = re.compile(r'^[─━═\-_ ]+$')
+
+
+def dw(s):
+    return sum(0 if unicodedata.combining(c)
+               else 2 if unicodedata.east_asian_width(c) in 'WF' else 1 for c in s)
+
+
+def unwrap(lines, width, first_x):
+    out, prev_w = [], 0
+    for i, line in enumerate(lines):
+        line = line.rstrip()
+        body = line.lstrip(' ')
+        prev = out[-1].strip() if out else ''
+        word = dw(body.split(' ')[0])
+        # 첫 단어가 들여쓰기와 함께 한 줄에 들어가야 "안 들어가서 넘겼다" 고 볼 수 있다.
+        if (width and prev and body and not BLOCK.match(body) and not RULE.match(prev)
+                and prev_w + 1 + word >= width and len(line) - len(body) + word <= width):
+            out[-1] += ' ' + body
+        else:
+            out.append(line)
+        prev_w = dw(line) + (first_x if i == 0 else 0)
+        # 터미널이 접은 줄은 tmux 가 이미 이어서 준다. 판단은 마지막 화면 줄 폭으로 한다.
+        while width and prev_w > width:
+            prev_w -= width
+    return out
+
+
+def dedent(lines):
+    lines = [l.rstrip() for l in lines]
+    if not lines:
+        return lines
+    rest = [len(l) - len(l.lstrip(' ')) for l in lines[1:] if l]
+    m = min(rest) if rest else 0
+    return [lines[0].lstrip(' ')] + [l[m:] for l in lines[1:]]
+
+
+def main():
+    args = [int(a) if a.lstrip('-').isdigit() else 0 for a in sys.argv[1:6]]
+    width, sx, sy, ex, ey = (args + [0] * 5)[:5]
+    # 위로 고르면 end 가 위쪽이다. 복사된 첫 줄은 둘 중 위(같은 줄이면 왼쪽)에서 시작한다.
+    first_x = sx if (sy, sx) <= (ey, ex) else ex
+    text = sys.stdin.buffer.read().decode('utf-8', 'replace')
+    buf = '\n'.join(dedent(unwrap(text.split('\n'), width, first_x))).rstrip('\n')
+    tty = subprocess.run(['tmux', 'display-message', '-p', '#{client_tty}'],
+                         capture_output=True, text=True).stdout.strip()
+    with open(tty, 'w') as f:
+        f.write('\033]52;c;%s\a' % base64.b64encode(buf.encode()).decode())
+
+
+if __name__ == '__main__':
+    main()
