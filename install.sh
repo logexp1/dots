@@ -9,7 +9,7 @@ fi
 INSTALL_DIR="$(dirname "$(realpath "$0")")/install"
 source "$INSTALL_DIR/common.sh"
 
-MODULES=(packages gpu root shell git emacs wal stow gpg doom mime ivanti)
+MODULES=(packages gpu root shell git emacs wal stow claude gpg doom mime ivanti)
 
 usage() {
     echo "Usage: $(basename "$0") [<module>...|all]"
