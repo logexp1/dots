@@ -16,10 +16,22 @@ run() {
         sudo mkdir -p "$dest_dir"
         sudo cp "$src" "$dest"
         sudo chown root:root "$dest"
-        sudo chmod 755 "$dest"
+        # scripts (e.g. dispatcher hooks) stay executable, config files do not
+        if [[ -x "$src" ]]; then
+            sudo chmod 755 "$dest"
+        else
+            sudo chmod 644 "$dest"
+        fi
 
         log_step "root" "Installed $dest"
     done < <(find "$SYSTEM_DIR" -type f -print0)
+
+    # Pick up conf.d changes (e.g. the Wi-Fi MAC policy). A connected Wi-Fi
+    # profile only switches MAC on its next connect.
+    if systemctl is-active --quiet NetworkManager; then
+        sudo nmcli general reload conf
+        log_step "root" "Reloaded NetworkManager config (reconnect Wi-Fi to apply MAC changes)"
+    fi
 
     log_step "root" "Done."
 }
