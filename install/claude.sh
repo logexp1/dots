@@ -34,10 +34,16 @@ EOF
 run() {
     log_step "claude" "Setting the Claude Code statusline..."
 
-    set_statusline "$HOME/.claude/settings.json"
-    local inst
-    for inst in "$HOME"/.ccs/instances/*/settings.json; do
-        [[ -f "$inst" && ! -L "$inst" ]] && set_statusline "$inst"
+    # Follow links to the real files: a CCS instance's settings.json may link to
+    # ~/.claude/settings.json, to ~/.ccs/shared/settings.json, or be its own file.
+    local f real
+    local -A done=()
+    for f in "$HOME/.claude/settings.json" "$HOME"/.ccs/shared/settings.json "$HOME"/.ccs/instances/*/settings.json; do
+        [[ -e "$f" || "$f" == "$HOME/.claude/settings.json" ]] || continue
+        real="$(realpath -m "$f")"
+        [[ -n "${done[$real]}" ]] && continue
+        done[$real]=1
+        set_statusline "$real"
     done
 
     # oh-my-claudecode HUD leftovers
