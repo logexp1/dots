@@ -190,6 +190,15 @@ install_with() {
             flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
             flatpak install -y flathub "$pkg"
             ;;
+        script)
+            # Upstream installer for tools shipped outside any repo. They keep
+            # themselves updated, so skip when the command already exists.
+            if command -v "$pkg" &>/dev/null; then
+                log_step "packages" "$pkg already installed, skipping"
+                return 0
+            fi
+            curl -fsSL "$extra" | bash
+            ;;
         *)
             log_error "packages" "Unknown package manager: $pm"
             return 1

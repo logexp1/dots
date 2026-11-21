@@ -129,6 +129,10 @@ yaml-language-server npm
 readability-cli npm
 prettier npm
 @mermaid-js/mermaid-cli npm
+@kaitranntt/ccs npm
+
+# Claude Code (native installer, updates itself)
+claude script https://claude.ai/install.sh
 
 # media
 zathura

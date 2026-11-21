@@ -47,7 +47,7 @@ Personal dotfiles managed via [GNU Stow](https://www.gnu.org/software/stow/), pl
 
 ### Package lists (`install/packages/`)
 
-One file per OS: `linux-debian` (apt), `linux-arch` (pacman), `linux-fedora` (dnf). Each line is `<package> [<package-manager> [<extra>]]`. If no PM is given, the OS default is used. Supported non-default PMs: `yay`, `npm`, `pip`, `pipx`, `cargo`, `flatpak`, `dnf-copr <owner/project>`, `dnf-repo <.repo URL>`. On Fedora the whole Hyprland stack comes from the `lionheartp/Hyprland` COPR. Lines starting with `#` are treated as comments and skipped.
+One file per OS: `linux-debian` (apt), `linux-arch` (pacman), `linux-fedora` (dnf). Each line is `<package> [<package-manager> [<extra>]]`. If no PM is given, the OS default is used. Supported non-default PMs: `yay`, `npm`, `pip`, `pipx`, `cargo`, `flatpak`, `dnf-copr <owner/project>`, `dnf-repo <.repo URL>`, `script <installer URL>` (pipes an upstream install script to bash unless the command already exists; used for the Claude Code native installer). On Fedora the whole Hyprland stack comes from the `lionheartp/Hyprland` COPR. Lines starting with `#` are treated as comments and skipped.
 
 ### Stow packages
 

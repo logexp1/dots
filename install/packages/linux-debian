@@ -36,6 +36,11 @@ webext-browserpass
 nodejs
 npm
 yaml-language-server npm
+@kaitranntt/ccs npm
+
+# Claude Code (native installer, updates itself)
+claude script https://claude.ai/install.sh
+
 sshfs
 uv pipx
 podman
