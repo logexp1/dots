@@ -48,15 +48,17 @@ run() {
     require_cmd pass
     require_cmd gpg
 
-    # Fix ownership/permissions if a previous root run corrupted the keyring
+    # Fix ownership/permissions if a previous root run corrupted the keyring.
+    # ~/.gnupg is a stow link to common/.gnupg, so find needs -H to descend
+    # into it; without it find only sees the link and nothing gets fixed.
     if [[ -d "$HOME/.gnupg" ]]; then
         # Check for root-owned files (sign of previous corruption)
-        if find "$HOME/.gnupg" -not -user "$USER" 2>/dev/null | grep -q .; then
+        if find -H "$HOME/.gnupg" -not -user "$USER" 2>/dev/null | grep -q .; then
             log_step "gpg" "Found non-user-owned files in ~/.gnupg, fixing..."
-            sudo chown -R "$USER:$USER" "$HOME/.gnupg"
+            sudo chown -R -H "$USER:$USER" "$HOME/.gnupg"
         fi
-        find "$HOME/.gnupg" -type d -exec chmod 700 {} \;
-        find "$HOME/.gnupg" -type f -exec chmod 600 {} \;
+        find -H "$HOME/.gnupg" -type d -exec chmod 700 {} \;
+        find -H "$HOME/.gnupg" -type f -exec chmod 600 {} \;
     fi
 
     # Remove use-keyboxd if present
