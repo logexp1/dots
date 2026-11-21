@@ -28,3 +28,6 @@ claude/.claude/*
 !claude/.claude/hud/
 !claude/.claude/skills/
 claude/.claude/skills/synced/
+
+# plugin versions float per machine (lazy.nvim rewrites this on every update)
+nvim/.config/nvim/lazy-lock.json
