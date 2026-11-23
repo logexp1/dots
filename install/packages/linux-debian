@@ -29,7 +29,6 @@ fonts-cascadia-code
 pywal pipx
 pyprland pipx
 swaybg
-hyprland-autoname-workspaces cargo
 eza cargo
 jupyter
 webext-browserpass

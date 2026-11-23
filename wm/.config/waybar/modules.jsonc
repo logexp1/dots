@@ -1,7 +1,37 @@
 {
+    // app icons per workspace (replaces hyprland-autoname-workspaces, which
+    // renamed workspaces and broke pypr scratchpads on Hyprland 0.57)
     "hyprland/workspaces": {
-        "format": "{name}",
-        "ignore-workspaces": ["S-.*"]
+        "format": "<b>{name}:</b> {windows}",
+        "format-window-separator": " ",
+        "window-rewrite-default": "",
+        "window-rewrite": {
+            "class<.*(firefox|chrom.*|brave-browser|floorp).*> title<.*[Yy]ou[Tt]ube.*>": "",
+            "class<.*(firefox|chrom.*|brave-browser|floorp).*> title<.*[Gg]it[Hh]ub.*>": "<span color='grey'></span>",
+            "class<.*fcitx.*>": "",
+            "class<.*[Bb]rave-browser.*>": "<span>󰖟</span>",
+            "class<.*[Cc]hromium.*>": "",
+            "class<.*transmission.*>": "",
+            "class<libreoffice-startcenter>": "",
+            "class<.*[Ff]loorp.*>": "<span color='green'>󰖟</span>",
+            "class<foot>": "󰆍",
+            "class<.*[Ss]lack.*>": "󰒱",
+            "class<virt-manager>": "",
+            "class<libreoffice-impress>": "",
+            "class<swappy>": "",
+            "class<libreoffice-calc>": "",
+            "class<dropdown>": "<span color='yellow'>󰆍</span>",
+            "class<.*[Zz]oom.*>": "",
+            "class<.*[Ee]macs.*>": "<span color='purple'></span>",
+            "class<.*[Zz]athura.*>": "",
+            "class<libreoffice-writer>": "",
+            "class<.*[Ww]aydroid.*>": "droid",
+            "class<pavucontrol>": "",
+            "class<.*firefox.*>": "<span color='orange'></span>"
+        },
+        "ignore-workspaces": [
+            "S-.*"
+        ]
     },
 
     // GROUP
