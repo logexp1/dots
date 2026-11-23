@@ -1168,8 +1168,10 @@ with valign so tables with Korean text don't drift.
 (after! org-agenda
   (setq! org-agenda-files (cons org-default-projects-file '())
          ;; I hate this option but necessary for speed up
-         org-agenda-block-separator " "
-         org-agenda-start-with-log-mode t)
+         org-agenda-block-separator " ")
+  ;; plain setq: t (show the log items of `org-agenda-log-mode-items') works but
+  ;; is missing from the defcustom type, so `setq!' (= `setopt') warns
+  (setq org-agenda-start-with-log-mode t)
   (add-to-list 'org-agenda-files org-default-inbox-file)
   (add-to-list 'org-agenda-files org-default-tickler-file)
   (add-to-list 'org-agenda-files (expand-file-name "inbox_m.org" org-directory))
@@ -1771,7 +1773,7 @@ some useful evil-org-mode keybinding (https://github.com/Somelauw/evil-org-mode)
   (setq! bibtex-completion-library-path js/pdf-directory
          bibtex-completion-notes-path (concat org-directory "ref")
          bibtex-completion-notes-path js/roam-directory
-         bibtex-completion-additional-search-fields '(tags keywords)
+         bibtex-completion-additional-search-fields '("tags" "keywords")
          bibtex-completion-bibliography `(,js/bibliography-file)))
 #+end_src
 
@@ -1801,7 +1803,9 @@ some useful evil-org-mode keybinding (https://github.com/Somelauw/evil-org-mode)
   (setq! org-roam-directory (file-truename js/roam-directory)
          org-roam-completion-everywhere nil
          org-roam-extract-new-file-path "${slug}.org")
-  (setq! org-roam-capture-templates
+  ;; plain setq: the function-target "today's note" entry is outside the
+  ;; defcustom type, so `setq!' (= `setopt') warns
+  (setq org-roam-capture-templates
          '(("d" "default" plain
             "%?"
             :if-new (file+head "${slug}.org"
@@ -1999,7 +2003,7 @@ _k_ : previous
   ;; (map! :map org-mode-map
   ;;       :localleader
   ;;       :desc "org-noter" "n" #'org-noter)
-  (setq! org-noter-doc-split-fraction '(0.57 0.43))
+  (setq! org-noter-doc-split-fraction '(0.57 . 0.43))
   (setq! org-noter-hide-other nil)
 
   (defun js/org-noter-insert-precise-note-dwim (force-mouse)
@@ -2080,7 +2084,7 @@ _k_ : previous
 
 #+begin_src emacs-lisp
 (after! org
-  (setq! reftex-default-bibliography js/bibliography-file)
+  (setq! reftex-default-bibliography (list js/bibliography-file))
   ;; (plist-put org-format-latex-options :scale 1.0)
   (setq! org-preview-latex-default-process 'dvisvgm
          org-preview-latex-process-alist
@@ -2126,7 +2130,7 @@ _k_ : previous
   (setq! org-format-latex-options '(:foreground default :background "Transparent" :scale 1.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
 			            ("begin" "$1" "$" "$$" "\\(" "\\["))
          org-latex-src-block-backend 'minted
-         org-latex-minted-options '(("breaklines")
+         org-latex-minted-options '(("breaklines" "true")
                                     ("bgcolor" "bg"))
          org-latex-compiler "xelatex"
          org-latex-packages-alist

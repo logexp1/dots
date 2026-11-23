@@ -147,6 +147,8 @@ k9s
 
 # Flatpak
 md.obsidian.Obsidian flatpak
+# Zoom for online meetings (Flathub)
+us.zoom.Zoom flatpak
 
 # markdown
 graphviz
@@ -171,3 +173,5 @@ texlive-framed
 texlive-lineno
 # minted shells out to pygmentize
 python3-pygments
+# ox-pandoc (doom :lang org +pandoc) exports through pandoc
+pandoc
